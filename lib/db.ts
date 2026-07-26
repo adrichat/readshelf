@@ -6,10 +6,15 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createClient() {
-  // Small pool per serverless instance: DATABASE_URL points at Supabase's
-  // transaction-mode pooler, which already multiplexes many clients — each
-  // lambda instance only needs a handful of local connections.
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL!, max: 3 })
+  // Many Vercel lambda instances can be warm at once, each holding its own
+  // connection to Supabase's pooler (pool_size: 15 project-wide) — keep each
+  // instance's footprint to a single connection, and release it quickly
+  // when idle instead of holding it for the lambda's whole warm lifetime.
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!,
+    max: 1,
+    idleTimeoutMillis: 10_000,
+  })
   return new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0])
 }
 
