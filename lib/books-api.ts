@@ -17,13 +17,15 @@ const FIELDS = "items(id,volumeInfo(title,authors,publishedDate,imageLinks,indus
 const cache = new Map<string, { at: number; results: BookSearchResult[] }>()
 const CACHE_TTL_MS = 5 * 60 * 1000
 
-function buildUrl(q: string, apiKey: string) {
+function buildUrl(q: string, apiKey: string, langRestrict?: string) {
   const encoded = encodeURIComponent(q)
-  // Pas de langRestrict — trop restrictif, coupe les mangas/livres dont Google n'a pas indexé la langue
+  // Pas de langRestrict par défaut — trop restrictif, coupe les mangas/livres dont Google n'a pas
+  // indexé la langue. On l'utilise uniquement pour la requête complémentaire ci-dessous.
   // country=FR : sans ce paramètre, Google tente de géolocaliser l'appelant via son IP pour la
   // vérification de disponibilité, et échoue souvent silencieusement sur des IP de serveur/datacenter
   // (renvoie alors 503 "backendFailed" au lieu d'un vrai résultat).
-  return `https://www.googleapis.com/books/v1/volumes?q=${encoded}&maxResults=20&printType=books&country=FR&key=${apiKey}&fields=${FIELDS}`
+  const lang = langRestrict ? `&langRestrict=${langRestrict}` : ""
+  return `https://www.googleapis.com/books/v1/volumes?q=${encoded}&maxResults=20&printType=books&country=FR${lang}&key=${apiKey}&fields=${FIELDS}`
 }
 
 const RETRYABLE_DELAYS_MS = [300, 900]
@@ -74,6 +76,17 @@ export async function searchBooks(query: string): Promise<BookSearchResult[]> {
     // Les deux tentatives ont échoué (après retries) : on ne cache pas cet échec
     // pour permettre un retry rapide côté client.
     return []
+  }
+
+  // Requête complémentaire restreinte au français : le classement renvoyé par Google
+  // pour la requête toutes-langues ci-dessus n'est pas fiable pour faire ressortir les
+  // éditions françaises en priorité (observé : le même appel peut renvoyer une
+  // composition très différente d'un environnement à l'autre). On récupère donc aussi
+  // explicitement les résultats en français et on les place en tête, dédupliqués.
+  const frItems = await fetchVolumes(buildUrl(`intitle:"${query}"`, apiKey, "fr"))
+  if (frItems && frItems.length > 0) {
+    const seen = new Set(frItems.map((it) => it.id as string))
+    items = [...frItems, ...items.filter((it) => !seen.has(it.id as string))].slice(0, 20)
   }
 
   const results = items.map((item) => {
