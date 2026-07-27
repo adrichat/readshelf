@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "@/components/Providers"
 import "./globals.css"
 
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-background text-foreground antialiased">
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )
