@@ -66,7 +66,7 @@ function LoginForm() {
     <div className="w-full max-w-sm">
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <div className="flex items-center gap-2 mb-6">
-          <BookOpen className="w-6 h-6 text-violet-400" />
+          <BookOpen className="w-6 h-6 text-amber-400" />
           <h1 className="text-xl font-bold">Connecte-toi à ton compte</h1>
         </div>
         <p className="text-sm text-gray-500 mb-8">
@@ -161,7 +161,7 @@ function LoginForm() {
                   <button
                     onClick={resendVerification}
                     disabled={resendState === "sending"}
-                    className="text-violet-400 hover:text-violet-300"
+                    className="text-amber-400 hover:text-amber-300"
                   >
                     {resendState === "sending" ? "Envoi…" : "Renvoyer l'email de confirmation"}
                   </button>
@@ -171,7 +171,7 @@ function LoginForm() {
             <Button
               onClick={handleCredentialsLogin}
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
             >
               {loading ? "Connexion…" : "Se connecter"}
             </Button>
@@ -186,7 +186,7 @@ function LoginForm() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Nouveau sur ReadShelf ?{" "}
-          <Link href="/register" className="text-violet-400 hover:text-violet-300">
+          <Link href="/register" className="text-amber-400 hover:text-amber-300">
             Créer un compte
           </Link>
         </p>

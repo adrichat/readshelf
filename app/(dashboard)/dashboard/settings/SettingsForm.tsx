@@ -226,20 +226,20 @@ export function SettingsForm({ isPremium, initialData }: Props) {
     <div className="flex flex-col gap-8">
       {/* Identité */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold text-gray-300 border-b border-white/8 pb-2">Identité</h2>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-white/8 pb-2">Identité</h2>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Photo de profil</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Photo de profil</Label>
           <div className="flex items-center gap-4">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={image}
                 alt=""
-                className="w-16 h-16 rounded-full object-cover border border-white/10 shrink-0"
+                className="w-16 h-16 rounded-full object-cover border border-gray-200 dark:border-white/10 shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 flex items-center justify-center text-xl font-bold shrink-0">
+              <div className="w-16 h-16 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl font-bold shrink-0">
                 {(displayName || initialData.username || "?").charAt(0).toUpperCase()}
               </div>
             )}
@@ -249,7 +249,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="px-4 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-gray-300 hover:border-white/25 hover:text-white transition-colors"
+                  className="px-4 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-white/25 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Changer la photo
                 </button>
@@ -261,7 +261,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
                       setImageDirty(true)
                       setAvatarError("")
                     }}
-                    className="px-4 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-gray-500 hover:border-red-500/40 hover:text-red-400 transition-colors"
+                    className="px-4 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-white/10 text-gray-500 hover:border-red-500/40 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                   >
                     Retirer
                   </button>
@@ -269,18 +269,18 @@ export function SettingsForm({ isPremium, initialData }: Props) {
               </div>
               <p className="text-xs text-gray-600">
                 JPG, PNG ou WebP — recadrée en carré.
-                {isPremium && <span className="text-violet-400"> GIF animé accepté ✦</span>}
+                {isPremium && <span className="text-amber-600 dark:text-amber-400"> GIF animé accepté ✦</span>}
               </p>
               {!isPremium && (
-                <p className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30">
+                <p className="text-xs text-gray-500 dark:text-gray-600 flex items-center gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                     <Sparkles className="w-3 h-3" />
                     Premium
                   </span>
                   GIF animé réservé aux comptes Premium —{" "}
                   <Link
                     href="/dashboard/premium"
-                    className="text-violet-400 hover:text-violet-300 transition-colors"
+                    className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
                   >
                     Débloquer →
                   </Link>
@@ -303,36 +303,36 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">URL de ton profil</Label>
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-500">
-            readshelf.dev/<span className="text-white">{initialData.username}</span>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">URL de ton profil</Label>
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-500">
+            readshelf.dev/<span className="text-gray-900 dark:text-white">{initialData.username}</span>
           </div>
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Email</Label>
-          <Input value={initialData.email} disabled className="bg-white/5 border-white/10 text-gray-500" />
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Email</Label>
+          <Input value={initialData.email} disabled className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500" />
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Nom affiché</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Nom affiché</Label>
           <Input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Ton prénom ou pseudo"
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600"
           />
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Bio</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Bio</Label>
           <Textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Quelques mots sur toi ou tes lectures…"
             rows={3}
             maxLength={200}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 resize-none"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 resize-none"
           />
           <p className="text-xs text-gray-600 mt-1 text-right">{bio.length}/200</p>
         </div>
@@ -340,12 +340,12 @@ export function SettingsForm({ isPremium, initialData }: Props) {
 
       {/* Liens sociaux */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold text-gray-300 border-b border-white/8 pb-2">Liens sociaux</h2>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-white/8 pb-2">Liens sociaux</h2>
         <p className="text-xs text-gray-600 -mt-2">Ces liens s&apos;affichent sur ta page publique.</p>
 
         {SOCIAL_FIELDS.map((field) => (
           <div key={field.key}>
-            <Label className="text-sm text-gray-400 mb-2 block">{field.label}</Label>
+            <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">{field.label}</Label>
             <Input
               value={socials[field.key]}
               onChange={(e) => {
@@ -362,7 +362,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
                 }
               }}
               placeholder={field.placeholder}
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 text-sm"
+              className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
             />
             {socialErrors[field.key] && (
               <p className="text-xs text-red-400 mt-1">{socialErrors[field.key]}</p>
@@ -371,7 +371,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         ))}
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Lien libre — titre</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Lien libre — titre</Label>
           <Input
             value={customLinkTitle}
             onChange={(e) => {
@@ -380,7 +380,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
             }}
             placeholder="Mon site, ma chaîne Twitch…"
             maxLength={CUSTOM_LINK_TITLE_MAX}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 text-sm"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
           />
           <p className="text-xs text-gray-600 mt-1 text-right">
             {customLinkTitle.length}/{CUSTOM_LINK_TITLE_MAX}
@@ -388,7 +388,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Lien libre — URL</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Lien libre — URL</Label>
           <Input
             value={customLinkUrl}
             onChange={(e) => {
@@ -402,7 +402,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
               }
             }}
             placeholder="https://..."
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 text-sm"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
           />
           {customLinkError && <p className="text-xs text-red-400 mt-1">{customLinkError}</p>}
         </div>
@@ -410,10 +410,10 @@ export function SettingsForm({ isPremium, initialData }: Props) {
 
       {/* SEO — Premium */}
       <div className={`flex flex-col gap-4 ${isPremium ? "" : "opacity-60"}`}>
-        <h2 className="text-sm font-semibold text-gray-300 border-b border-white/8 pb-2 flex items-center">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-white/8 pb-2 flex items-center">
           SEO
           {!isPremium && (
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 ml-2 font-normal">
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 ml-2 font-normal">
               <Sparkles className="w-3 h-3" />
               Premium
             </span>
@@ -424,19 +424,19 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         </p>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Titre SEO</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Titre SEO</Label>
           <Input
             value={seoTitle}
             onChange={(e) => setSeoTitle(e.target.value)}
             placeholder="Ma bibliothèque — Prénom"
             maxLength={60}
             disabled={!isPremium}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600"
           />
         </div>
 
         <div>
-          <Label className="text-sm text-gray-400 mb-2 block">Description SEO</Label>
+          <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Description SEO</Label>
           <Textarea
             value={seoDescription}
             onChange={(e) => setSeoDescription(e.target.value)}
@@ -444,14 +444,14 @@ export function SettingsForm({ isPremium, initialData }: Props) {
             rows={2}
             maxLength={160}
             disabled={!isPremium}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 resize-none"
+            className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 resize-none"
           />
         </div>
 
         {!isPremium && (
           <Link
             href="/dashboard/premium"
-            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+            className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
           >
             Débloquer avec Premium →
           </Link>
@@ -463,7 +463,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
       <Button
         onClick={save}
         disabled={saving}
-        className="self-start bg-violet-600 hover:bg-violet-700 text-white px-8"
+        className="self-start bg-amber-600 hover:bg-amber-700 text-white px-8"
       >
         {saved ? "Sauvegardé ✓" : saving ? "Sauvegarde…" : "Sauvegarder"}
       </Button>

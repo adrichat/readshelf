@@ -17,7 +17,7 @@ export function PremiumSparkle({ className = "" }: { className?: string }) {
       }}
       className={`shrink-0 cursor-pointer hover:opacity-75 transition-opacity ${className}`}
     >
-      <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
     </button>
   )
 }

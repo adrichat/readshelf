@@ -31,7 +31,7 @@ export function CopyLinkButton({ username }: { username: string }) {
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors ${
         copied
           ? "border-green-500/40 bg-green-500/10 text-green-300"
-          : "border-white/10 bg-white/[0.02] text-gray-400 hover:text-white hover:border-white/25"
+          : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/25"
       }`}
     >
       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}

@@ -8,7 +8,7 @@ import { BookOpen, Star, Palette, Globe, LayoutDashboard, Sparkles, Camera, Vide
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-// Override du thème shadcn (violet par défaut) pour toute la page d'accueil
+// Fixe le thème ambre pour toute la page d'accueil (indépendant du mode clair/sombre du dashboard)
 const THEME_OVERRIDE = {
   "--primary": "#d97706",
   "--primary-foreground": "#ffffff",
@@ -148,7 +148,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#101016] text-white flex flex-col" style={THEME_OVERRIDE}>
+    <div className="dark min-h-screen bg-[#101016] text-white flex flex-col" style={THEME_OVERRIDE}>
       {/* Halo ambiant — lueurs ambrées qui dérivent lentement */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <style>{`

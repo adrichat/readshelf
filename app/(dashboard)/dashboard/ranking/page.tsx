@@ -64,8 +64,8 @@ export default async function RankingPage() {
                 target="_blank"
                 className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
                   isMe
-                    ? "border-violet-500/40 bg-violet-500/5 hover:bg-violet-500/10"
-                    : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"
+                    ? "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10"
+                    : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] hover:bg-gray-100 dark:hover:bg-white/[0.05]"
                 }`}
               >
                 <span
@@ -84,7 +84,7 @@ export default async function RankingPage() {
                     className="w-10 h-10 rounded-full object-cover shrink-0"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-center justify-center text-sm font-bold shrink-0">
                     {name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -94,7 +94,7 @@ export default async function RankingPage() {
                     <span className="truncate">{name}</span>
                     {p.user.isPremium && <PremiumSparkle />}
                     {isMe && (
-                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 shrink-0 font-normal">
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0 font-normal">
                         Toi
                       </span>
                     )}

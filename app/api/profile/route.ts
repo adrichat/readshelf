@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest) {
       userId: session.user.id,
       backgroundType: backgroundType ?? "COLOR",
       backgroundValue: backgroundValue ?? "#0f0f0f",
-      accentColor: accentColor ?? "#7c3aed",
+      accentColor: accentColor ?? "#d97706",
       fontFamily: fontFamily ?? "inter",
       layoutType: layoutType ?? "GRID",
       effectType: effectType ?? null,

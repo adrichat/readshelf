@@ -109,7 +109,7 @@ function RegisterForm() {
     <div className="w-full max-w-sm">
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <div className="flex items-center gap-2 mb-6">
-          <BookOpen className="w-6 h-6 text-violet-400" />
+          <BookOpen className="w-6 h-6 text-amber-400" />
           <h1 className="text-xl font-bold">
             {step === "username" && "Crée ton compte"}
             {step === "method" && "Choisis comment te connecter"}
@@ -155,7 +155,7 @@ function RegisterForm() {
             <Button
               onClick={checkUsername}
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
             >
               {loading ? "Vérification…" : "Continuer"}
             </Button>
@@ -249,7 +249,7 @@ function RegisterForm() {
             <Button
               onClick={registerWithEmail}
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
             >
               {loading ? "Création…" : "Créer mon compte"}
             </Button>
@@ -264,8 +264,8 @@ function RegisterForm() {
 
         {step === "sent" && (
           <div className="flex flex-col gap-4 items-center text-center">
-            <Mail className="w-10 h-10 text-violet-400" />
-            <Link href="/login" className="text-sm text-violet-400 hover:text-violet-300">
+            <Mail className="w-10 h-10 text-amber-400" />
+            <Link href="/login" className="text-sm text-amber-400 hover:text-amber-300">
               Retour à la connexion
             </Link>
           </div>
@@ -275,7 +275,7 @@ function RegisterForm() {
           <>
             <p className="mt-6 text-center text-sm text-gray-600">
               Tu as déjà un compte ?{" "}
-              <Link href="/login" className="text-violet-400 hover:text-violet-300">
+              <Link href="/login" className="text-amber-400 hover:text-amber-300">
                 Se connecter
               </Link>
             </p>

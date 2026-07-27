@@ -61,7 +61,7 @@ export default async function ProfilePage({ params }: Props) {
   const profile = user.profile
   const bgType = profile?.backgroundType ?? "COLOR"
   const bgValue = profile?.backgroundValue ?? "#0a0a0a"
-  const accentColor = profile?.accentColor ?? "#7c3aed"
+  const accentColor = profile?.accentColor ?? "#d97706"
 
   // Options premium — appliquées uniquement si le compte l'est
   // (les anciennes valeurs SHELF/MOSAIC retombent sur la grille)

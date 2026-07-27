@@ -105,7 +105,7 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#111] border-white/10 text-white max-w-lg">
+      <DialogContent className="bg-white dark:bg-[#111] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white max-w-lg">
         <DialogHeader>
           <DialogTitle>Ajouter un livre</DialogTitle>
         </DialogHeader>
@@ -118,8 +118,8 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
               onClick={() => setSelectedStatus(s.value)}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                 selectedStatus === s.value
-                  ? "bg-violet-600 border-violet-500 text-white"
-                  : "border-white/10 text-gray-400 hover:border-white/20"
+                  ? "bg-amber-600 border-amber-500 text-white"
+                  : "border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20"
               }`}
             >
               {s.label}
@@ -134,7 +134,7 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
             value={query}
             onChange={(e) => handleQuery(e.target.value)}
             placeholder="Titre, auteur, ISBN…"
-            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-600"
+            className="pl-9 bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600"
             autoFocus
           />
           {query && (
@@ -166,9 +166,9 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
             return (
               <div
                 key={book.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
               >
-                <div className="w-10 h-14 rounded shrink-0 bg-white/10 overflow-hidden">
+                <div className="w-10 h-14 rounded shrink-0 bg-gray-200 dark:bg-white/10 overflow-hidden">
                   {book.coverUrl && (
                     <Image src={book.coverUrl} alt={book.title} width={40} height={56} className="object-cover w-full h-full" />
                   )}
@@ -192,7 +192,7 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
                     size="sm"
                     onClick={() => handleAdd(book)}
                     disabled={adding === book.id}
-                    className="shrink-0 bg-violet-600 hover:bg-violet-700 text-white"
+                    className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>

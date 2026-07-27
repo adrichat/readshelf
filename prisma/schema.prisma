@@ -81,7 +81,7 @@ model Profile {
 
   backgroundType  BackgroundType @default(COLOR)
   backgroundValue String         @default("#0f0f0f")
-  accentColor     String         @default("#7c3aed")
+  accentColor     String         @default("#d97706")
   fontFamily      String         @default("inter")
   layoutType      LayoutType     @default(GRID)
   effectType      EffectType?

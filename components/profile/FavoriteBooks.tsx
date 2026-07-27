@@ -18,7 +18,7 @@ interface FavoriteBooksProps {
 
 export function FavoriteBooks({
   books,
-  accentColor = "#7c3aed",
+  accentColor = "#d97706",
   accentText = accentColor,
   fg = foregroundFor(0),
 }: FavoriteBooksProps) {

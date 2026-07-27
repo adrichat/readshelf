@@ -78,14 +78,14 @@ function StatusPicker({ ub, open, onToggle, onClose, onSelect }: StatusPickerPro
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.12, ease: "easeOut" }}
-            className="absolute left-0 top-full mt-1 z-50 w-36 rounded-lg border border-white/10 bg-[#16161c] shadow-xl p-1 flex flex-col"
+            className="absolute left-0 top-full mt-1 z-50 w-36 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#16161c] shadow-xl p-1 flex flex-col"
           >
             {ALL_STATUSES.map((s) => (
               <button
                 key={s}
                 onClick={() => onSelect(s)}
-                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-left transition-colors hover:bg-white/5 ${
-                  s === ub.status ? "text-white" : "text-gray-400"
+                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/5 ${
+                  s === ub.status ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 <span
@@ -93,7 +93,7 @@ function StatusPicker({ ub, open, onToggle, onClose, onSelect }: StatusPickerPro
                   style={{ backgroundColor: STATUS_DOTS[s] }}
                 />
                 <span className="flex-1">{STATUS_LABELS[s]}</span>
-                {s === ub.status && <Check className="w-3 h-3 text-violet-400 shrink-0" />}
+                {s === ub.status && <Check className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
               </button>
             ))}
           </motion.div>
@@ -247,7 +247,7 @@ export default function LibraryPage() {
         </div>
         <Button
           onClick={() => setModalOpen(true)}
-          className="bg-violet-600 hover:bg-violet-700 text-white flex items-center gap-2"
+          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Ajouter un livre
@@ -258,7 +258,7 @@ export default function LibraryPage() {
       {books.length > 0 && (
         <div
           className={`mb-6 p-4 rounded-xl border transition-colors ${
-            dragId ? "border-violet-500/60 bg-violet-500/5" : "border-white/8 bg-white/[0.02]"
+            dragId ? "border-amber-500/60 bg-amber-500/5" : "border-gray-200 dark:border-white/8 bg-gray-50 dark:bg-white/[0.02]"
           }`}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -308,7 +308,7 @@ export default function LibraryPage() {
                   className="relative group w-40 cursor-grab active:cursor-grabbing"
                   title={fav.book.title}
                 >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                     {fav.book.coverUrl ? (
                       <Image src={fav.book.coverUrl} alt={fav.book.title} fill className="object-cover" sizes="160px" draggable={false} />
                     ) : (
@@ -336,10 +336,10 @@ export default function LibraryPage() {
                     setDragId(null)
                   }}
                   className={`w-40 aspect-[2/3] rounded-lg border-2 border-dashed flex items-center justify-center transition-colors ${
-                    dragId ? "border-violet-500/60" : "border-white/10 hover:border-violet-500/40"
+                    dragId ? "border-amber-500/60" : "border-gray-300 dark:border-white/10 hover:border-amber-500/40"
                   }`}
                 >
-                  <Plus className="w-5 h-5 text-gray-700" />
+                  <Plus className="w-5 h-5 text-gray-400 dark:text-gray-700" />
                 </button>
               )
             })}
@@ -356,8 +356,8 @@ export default function LibraryPage() {
               onClick={() => setFilter(s)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 filter === s
-                  ? "bg-violet-600 border-violet-500 text-white"
-                  : "border-white/10 text-gray-400 hover:border-white/20"
+                  ? "bg-amber-600 border-amber-500 text-white"
+                  : "border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20"
               }`}
             >
               {s === "ALL" ? "Tous" : STATUS_LABELS[s]}
@@ -365,13 +365,13 @@ export default function LibraryPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.02] p-0.5 shrink-0">
+        <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] p-0.5 shrink-0">
           <button
             onClick={() => setView("grid")}
             aria-label="Vue grille"
             title="Vue grille"
             className={`p-1.5 rounded-md transition-colors ${
-              view === "grid" ? "bg-violet-500/20 text-violet-300" : "text-gray-500 hover:text-white"
+              view === "grid" ? "bg-amber-500/20 text-amber-700 dark:text-amber-300" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -381,7 +381,7 @@ export default function LibraryPage() {
             aria-label="Vue liste"
             title="Vue liste"
             className={`p-1.5 rounded-md transition-colors ${
-              view === "list" ? "bg-violet-500/20 text-violet-300" : "text-gray-500 hover:text-white"
+              view === "list" ? "bg-amber-500/20 text-amber-700 dark:text-amber-300" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             <List className="w-4 h-4" />
@@ -395,7 +395,7 @@ export default function LibraryPage() {
             <div className="text-center py-20 text-gray-600">
               <p className="text-4xl mb-3">📚</p>
               <p>Ta bibliothèque est vide.</p>
-              <Button onClick={() => setModalOpen(true)} className="mt-4 bg-violet-600 hover:bg-violet-700 text-white">
+              <Button onClick={() => setModalOpen(true)} className="mt-4 bg-amber-600 hover:bg-amber-700 text-white">
                 Ajouter ton premier livre
               </Button>
             </div>
@@ -429,7 +429,7 @@ export default function LibraryPage() {
                         onDragEnd={() => setDragId(null)}
                         className="group relative flex flex-col gap-2 cursor-grab active:cursor-grabbing"
                       >
-                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                           {ub.book.coverUrl ? (
                             <Image src={ub.book.coverUrl} alt={ub.book.title} fill className="object-cover" sizes="160px" draggable={false} />
                           ) : (
@@ -509,9 +509,9 @@ export default function LibraryPage() {
                           setDragId(ub.id)
                         }}
                         onDragEnd={() => setDragId(null)}
-                        className="flex items-center gap-3 sm:gap-4 p-2 pr-2.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-grab active:cursor-grabbing group"
+                        className="flex items-center gap-3 sm:gap-4 p-2 pr-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-colors cursor-grab active:cursor-grabbing group"
                       >
-                        <div className="relative w-10 aspect-[2/3] rounded-md overflow-hidden bg-white/5 shrink-0">
+                        <div className="relative w-10 aspect-[2/3] rounded-md overflow-hidden bg-gray-100 dark:bg-white/5 shrink-0">
                           {ub.book.coverUrl ? (
                             <Image src={ub.book.coverUrl} alt={ub.book.title} fill className="object-cover" sizes="40px" draggable={false} />
                           ) : (
@@ -537,14 +537,14 @@ export default function LibraryPage() {
                         <div className="flex items-center shrink-0">
                           <button
                             onClick={() => handleFavorite(ub)}
-                            className="p-1.5 rounded-md text-gray-600 hover:text-rose-400 hover:bg-white/5 transition-colors"
+                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                             title={ub.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                           >
                             <Heart className={`w-3.5 h-3.5 ${ub.isFavorite ? "text-rose-400 fill-rose-400" : ""}`} />
                           </button>
                           <button
                             onClick={() => handleDelete(ub.id)}
-                            className="p-1.5 rounded-md text-gray-600 hover:text-red-400 hover:bg-white/5 transition-colors"
+                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                             title="Supprimer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

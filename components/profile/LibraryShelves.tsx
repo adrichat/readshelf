@@ -39,7 +39,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out
 }
 
-export function LibraryShelves({ books, shelfColor = "#7a4518", accentColor = "#7c3aed" }: LibraryShelvesProps) {
+export function LibraryShelves({ books, shelfColor = "#7a4518", accentColor = "#d97706" }: LibraryShelvesProps) {
   const isMobile = useMediaQuery("(max-width: 639px)")
   const perShelf = isMobile ? PER_SHELF_MOBILE : PER_SHELF_DESKTOP
   const shelves = useMemo(() => chunk(books, perShelf), [books, perShelf])

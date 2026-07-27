@@ -29,11 +29,11 @@ export function PremiumBuyButton() {
           type="checkbox"
           checked={accepted}
           onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-0.5 accent-violet-600"
+          className="mt-0.5 accent-amber-600"
         />
         <span>
           J&apos;accepte les{" "}
-          <Link href="/cgu-cgv" target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+          <Link href="/cgu-cgv" target="_blank" className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline underline-offset-2">
             CGV
           </Link>{" "}
           et je demande l&apos;exécution immédiate du service Premium, ce qui implique de renoncer à mon droit de
@@ -43,7 +43,7 @@ export function PremiumBuyButton() {
       <Button
         onClick={buy}
         disabled={loading || !accepted}
-        className="bg-violet-600 hover:bg-violet-700 text-white px-10 py-5 text-base disabled:opacity-40"
+        className="bg-amber-600 hover:bg-amber-700 text-white px-10 py-5 text-base disabled:opacity-40"
       >
         {loading ? "Redirection…" : "Passer Premium — 4,99 €"}
       </Button>

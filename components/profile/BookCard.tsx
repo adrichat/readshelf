@@ -45,7 +45,7 @@ export function BookCard({
   type,
   status,
   index = 0,
-  accentColor = "#7c3aed",
+  accentColor = "#d97706",
   fg = foregroundFor(0),
 }: BookCardProps) {
   const statusColor =

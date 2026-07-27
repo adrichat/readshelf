@@ -93,16 +93,16 @@ export function AchievementsProvider({
               exit={{ opacity: 0, x: 60, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               onClick={() => dismiss(t.key)}
-              className="pointer-events-auto relative w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-amber-500/30 bg-[#141414]/95 backdrop-blur-md shadow-lg shadow-black/40 p-4 flex gap-3 cursor-pointer"
+              className="pointer-events-auto relative w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-amber-500/30 bg-white/95 dark:bg-[#141414]/95 backdrop-blur-md shadow-lg shadow-black/10 dark:shadow-black/40 p-4 flex gap-3 cursor-pointer"
             >
               <div className="w-11 h-11 shrink-0 rounded-full bg-amber-500/15 flex items-center justify-center text-xl">
                 {t.icon}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-amber-300 uppercase tracking-wide mb-0.5">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wide mb-0.5">
                   Succès débloqué
                 </p>
-                <p className="text-sm font-medium text-white truncate">{t.title}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{t.title}</p>
                 <p className="text-xs text-gray-500 truncate">{t.description}</p>
               </div>
               <motion.div

@@ -63,7 +63,7 @@ export default function SetupPage() {
     <div className="w-full max-w-sm">
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <div className="flex items-center gap-2 mb-6">
-          <BookOpen className="w-6 h-6 text-violet-400" />
+          <BookOpen className="w-6 h-6 text-amber-400" />
           <h1 className="text-xl font-bold">Choisis ton URL</h1>
         </div>
         <p className="text-sm text-gray-500 mb-8">
@@ -85,7 +85,7 @@ export default function SetupPage() {
               />
             </div>
             <p className="text-xs text-gray-600 mt-1">
-              readshelf.dev/<span className="text-violet-400">{username || "ton-nom"}</span>
+              readshelf.dev/<span className="text-amber-400">{username || "ton-nom"}</span>
             </p>
             {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
           </div>
@@ -93,7 +93,7 @@ export default function SetupPage() {
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white"
           >
             {loading ? "Vérification…" : "Créer ma bibliothèque"}
           </Button>

@@ -43,7 +43,7 @@ export default async function PremiumPage({ searchParams }: Props) {
   return (
     <div className="p-4 sm:p-8 max-w-2xl">
       <div className="flex items-center gap-2 mb-1">
-        <Sparkles className="w-5 h-5 text-violet-400" />
+        <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
         <h1 className="text-2xl font-bold">Premium</h1>
       </div>
 
@@ -57,15 +57,15 @@ export default async function PremiumPage({ searchParams }: Props) {
             </div>
           )}
 
-          <div className="p-6 rounded-2xl border border-violet-500/30 bg-violet-500/5">
+          <div className="p-6 rounded-2xl border border-amber-500/30 bg-amber-500/5">
             <p className="text-lg font-semibold mb-1">✦ Tu es Lecteur Premium</p>
             <p className="text-sm text-gray-500 mb-5">
               Toutes les options sont débloquées, pour toujours.
             </p>
             <ul className="flex flex-col gap-2.5">
               {PREMIUM_FEATURES.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                  <Check className="w-4 h-4 text-violet-400 shrink-0" />
+                <li key={f} className="flex items-center gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                  <Check className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   {f}
                 </li>
               ))}
@@ -79,21 +79,21 @@ export default async function PremiumPage({ searchParams }: Props) {
           </p>
 
           {status === "cancelled" && (
-            <div className="mb-6 p-4 rounded-xl border border-white/10 bg-white/[0.02] text-sm text-gray-400">
+            <div className="mb-6 p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] text-sm text-gray-600 dark:text-gray-400">
               Paiement annulé. Tu peux réessayer quand tu veux.
             </div>
           )}
 
-          <div className="p-6 rounded-2xl border border-violet-500/30 bg-violet-500/5 mb-6">
+          <div className="p-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 mb-6">
             <div className="flex items-baseline gap-2 mb-1">
               <span className="text-3xl font-bold">4,99 €</span>
-              <span className="text-sm text-violet-400">paiement unique</span>
+              <span className="text-sm text-amber-600 dark:text-amber-400">paiement unique</span>
             </div>
             <p className="text-sm text-gray-500 mb-5">Tu le gardes pour toujours.</p>
             <ul className="flex flex-col gap-2.5 mb-6">
               {PREMIUM_FEATURES.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                  <Check className="w-4 h-4 text-violet-400 shrink-0" />
+                <li key={f} className="flex items-center gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                  <Check className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   {f}
                 </li>
               ))}

@@ -9,10 +9,10 @@ interface Props {
 
 export function LegalPage({ title, updatedAt, children }: Props) {
   return (
-    <div className="min-h-screen bg-[#101016] text-white">
+    <div className="dark min-h-screen bg-[#101016] text-white">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <Link href="/" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
-          <BookOpen className="w-5 h-5 text-violet-400" />
+          <BookOpen className="w-5 h-5 text-amber-400" />
           <span className="font-semibold tracking-tight">ReadShelf</span>
         </Link>
         <div className="flex items-center gap-4 text-xs text-gray-500">
