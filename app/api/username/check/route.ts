@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "404", "500"]
+const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
 
 export async function GET(req: NextRequest) {
   const username = req.nextUrl.searchParams.get("username")

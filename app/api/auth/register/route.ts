@@ -9,7 +9,7 @@ import {
   VERIFICATION_TOKEN_TTL_MS,
 } from "@/lib/verification-token"
 
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "404", "500"]
+const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Une inscription est un événement rare pour un vrai utilisateur — large

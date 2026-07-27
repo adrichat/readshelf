@@ -21,6 +21,7 @@ function LoginForm() {
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle")
 
   const verified = searchParams.get("verified") === "1"
+  const reset = searchParams.get("reset") === "1"
   const urlError = searchParams.get("error")
 
   async function handleCredentialsLogin() {
@@ -78,6 +79,11 @@ function LoginForm() {
         {verified && (
           <p className="text-xs text-emerald-400 mb-4">
             Email confirmé, tu peux te connecter.
+          </p>
+        )}
+        {reset && (
+          <p className="text-xs text-emerald-400 mb-4">
+            Mot de passe mis à jour, tu peux te connecter.
           </p>
         )}
         {urlError === "invalid_token" && (
@@ -144,7 +150,12 @@ function LoginForm() {
               />
             </div>
             <div>
-              <Label className="text-gray-400 text-xs mb-2 block">Mot de passe</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-gray-400 text-xs">Mot de passe</Label>
+                <Link href="/forgot-password" className="text-xs text-amber-400 hover:text-amber-300">
+                  Oublié ?
+                </Link>
+              </div>
               <Input
                 type="password"
                 value={password}

@@ -239,11 +239,6 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
                 {isLoggedIn ? "Mon dashboard" : "Créer ma page"}
               </Button>
             </Link>
-            <Link href="/demo">
-              <Button size="lg" variant="outline" className="border-white/10 text-gray-300 hover:bg-white/5 px-8">
-                Voir un exemple
-              </Button>
-            </Link>
           </div>
         </motion.div>
       </section>

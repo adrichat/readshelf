@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
     where: { token: hashed },
   })
 
-  if (!verificationToken) {
+  // Un token de reset de mot de passe partage la table mais ne doit jamais
+  // pouvoir vérifier un email (voir lib/verification-token.ts)
+  if (!verificationToken || verificationToken.identifier.startsWith("reset:")) {
     return NextResponse.redirect(new URL("/login?error=invalid_token", req.url))
   }
 

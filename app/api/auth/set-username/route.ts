@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "404", "500"]
+const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
 
 export async function POST(req: NextRequest) {
   const session = await auth()
