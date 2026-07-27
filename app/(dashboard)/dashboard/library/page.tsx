@@ -33,10 +33,12 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  READING: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  READ: "bg-green-500/20 text-green-300 border-green-500/30",
-  TO_READ: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-  ABANDONED: "bg-red-500/20 text-red-300 border-red-500/30",
+  READING: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
+  READ: "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30",
+  TO_READ: "bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-500/30",
+  // Conservé pour les livres déjà marqués "Abandonné" en base (fonctionnalité
+  // retirée du picker et des filtres, mais l'ancien statut doit rester lisible)
+  ABANDONED: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30",
 }
 
 const STATUS_DOTS: Record<string, string> = {
@@ -46,7 +48,7 @@ const STATUS_DOTS: Record<string, string> = {
   ABANDONED: "#f87171",
 }
 
-const ALL_STATUSES = ["READING", "READ", "TO_READ", "ABANDONED"]
+const ALL_STATUSES = ["READING", "READ", "TO_READ"]
 
 interface StatusPickerProps {
   ub: UserBook
@@ -350,7 +352,7 @@ export default function LibraryPage() {
       {/* Filters + bascule grille/liste */}
       <div className="flex items-center flex-wrap gap-3 mb-6">
         <div className="flex gap-2 flex-wrap flex-1">
-          {["ALL", "READING", "READ", "TO_READ", "ABANDONED"].map((s) => (
+          {["ALL", "READING", "READ", "TO_READ"].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}

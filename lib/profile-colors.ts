@@ -39,13 +39,19 @@ export function contrastRatio(lum1: number, lum2: number): number {
 }
 
 /**
- * Luminance représentative d'un fond COLOR ou GRADIENT : moyenne des couleurs
- * hex trouvées dans la valeur. Sans hex détecté (image…), on suppose un fond sombre.
+ * Luminance représentative d'un fond COLOR ou GRADIENT, pour choisir une seule
+ * couleur de texte lisible sur toute la page. On utilise la première couleur
+ * trouvée (le haut du dégradé — nos dégradés vont de `from` en haut à `to` en
+ * bas via `linear-gradient(160deg, ...)`) plutôt qu'une moyenne : le contenu
+ * (nom, stats, titres) est affiché en haut de page, donc c'est cette couleur-là
+ * qui détermine la lisibilité — une moyenne peut masquer un haut très sombre
+ * (ou très clair) si l'autre extrémité du dégradé tire trop dans l'autre sens.
+ * Sans hex détecté (image…), on suppose un fond sombre.
  */
 export function backgroundLuminance(backgroundValue: string): number {
-  const hexes = backgroundValue.match(/#[0-9a-fA-F]{6}/g)
-  if (!hexes || hexes.length === 0) return 0.05
-  return hexes.reduce((sum, h) => sum + luminance(h), 0) / hexes.length
+  const hex = backgroundValue.match(/#[0-9a-fA-F]{6}/)?.[0]
+  if (!hex) return 0.05
+  return luminance(hex)
 }
 
 // Point de bascule blanc/noir : en dessous de L≈0.179, le blanc contraste
