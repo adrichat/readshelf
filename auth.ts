@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import bcrypt from "bcryptjs"
 import { authConfig } from "./auth.config"
 import { db } from "@/lib/db"
+import { rateLimit, clientIp } from "@/lib/rate-limit"
 
 class InvalidCredentialsError extends CredentialsSignin {
   code = "invalid_credentials"
@@ -12,6 +13,16 @@ class InvalidCredentialsError extends CredentialsSignin {
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email_not_verified"
 }
+
+class TooManyAttemptsError extends CredentialsSignin {
+  code = "too_many_attempts"
+}
+
+// Freine le brute-force par compte visé (email) et, en complément, par IP —
+// une IP qui enchaîne les essais sur des comptes différents reste limitée.
+const LOGIN_EMAIL_LIMIT = 10
+const LOGIN_IP_LIMIT = 30
+const LOGIN_WINDOW_MS = 15 * 60_000
 
 // Nombre de jours calendaires (UTC) écoulés entre deux dates
 function daysBetween(from: Date, to: Date): number {
@@ -31,11 +42,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: {},
         password: {},
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = credentials?.email
         const password = credentials?.password
         if (typeof email !== "string" || typeof password !== "string") {
           throw new InvalidCredentialsError()
+        }
+
+        const ipAllowed = rateLimit(`login:ip:${clientIp(request)}`, LOGIN_IP_LIMIT, LOGIN_WINDOW_MS)
+        const emailAllowed = rateLimit(`login:email:${email.toLowerCase()}`, LOGIN_EMAIL_LIMIT, LOGIN_WINDOW_MS)
+        if (!ipAllowed || !emailAllowed) {
+          throw new TooManyAttemptsError()
         }
 
         const user = await db.user.findUnique({ where: { email } })

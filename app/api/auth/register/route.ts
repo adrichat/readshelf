@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { sendVerificationEmail } from "@/lib/resend"
+import { rateLimit, clientIp } from "@/lib/rate-limit"
 import {
   generateVerificationToken,
   hashVerificationToken,
@@ -11,7 +12,19 @@ import {
 const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "404", "500"]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Une inscription est un événement rare pour un vrai utilisateur — large
+// marge contre les faux positifs, suffisant pour freiner un bot en boucle.
+const REGISTER_LIMIT = 8
+const REGISTER_WINDOW_MS = 15 * 60_000
+
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`register:${clientIp(req)}`, REGISTER_LIMIT, REGISTER_WINDOW_MS)) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Réessaie dans quelques minutes." },
+      { status: 429 }
+    )
+  }
+
   const { username, email, password } = await req.json()
 
   if (!username || typeof username !== "string" || !/^[a-z0-9_-]{3,30}$/.test(username)) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { isValidHexColor, isValidSolidOrGradientBackground } from "@/lib/color-validation"
 
 // Fond animé : gif uniquement (un autre format perdrait l'intérêt de l'animation)
 // et réservé aux comptes premium, comme le GIF d'avatar dans /api/user/profile
@@ -59,6 +60,21 @@ export async function PATCH(req: NextRequest) {
     if (typeof backgroundValue !== "string" || !isValidBackgroundGif(backgroundValue)) {
       return NextResponse.json({ error: "INVALID_IMAGE" }, { status: 400 })
     }
+  } else if (backgroundValue !== undefined) {
+    // Le type peut être omis dans une mise à jour partielle (seule la valeur
+    // change) : on retombe alors sur COLOR, seul format compatible avec un
+    // ancien fond uni déjà enregistré.
+    const type = backgroundType === "GRADIENT" ? "GRADIENT" : "COLOR"
+    if (!isValidSolidOrGradientBackground(type, backgroundValue)) {
+      return NextResponse.json({ error: "INVALID_BACKGROUND" }, { status: 400 })
+    }
+  }
+
+  if (accentColor !== undefined && !isValidHexColor(accentColor)) {
+    return NextResponse.json({ error: "INVALID_ACCENT_COLOR" }, { status: 400 })
+  }
+  if (shelfColor !== undefined && !isValidHexColor(shelfColor)) {
+    return NextResponse.json({ error: "INVALID_SHELF_COLOR" }, { status: 400 })
   }
 
   const profile = await db.profile.upsert({

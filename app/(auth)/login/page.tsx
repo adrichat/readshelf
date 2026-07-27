@@ -43,6 +43,8 @@ function LoginForm() {
       if (res.code === "email_not_verified") {
         setNeedsVerification(true)
         setError("Ton adresse email n'est pas encore confirmée.")
+      } else if (res.code === "too_many_attempts") {
+        setError("Trop de tentatives. Réessaie dans quelques minutes.")
       } else {
         setError("Email ou mot de passe incorrect.")
       }

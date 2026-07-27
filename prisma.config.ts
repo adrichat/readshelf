@@ -8,7 +8,12 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // URL utilisée par la CLI (migrate/introspect) uniquement — distincte de
+  // DATABASE_URL, lu directement par lib/db.ts pour les requêtes de l'app.
+  // Le pooler en mode transaction (DATABASE_URL, port 6543) ne supporte pas
+  // les verrous advisory dont `prisma migrate` a besoin ; DIRECT_URL pointe
+  // vers le même pooler en mode session (port 5432), qui les supporte.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"],
   },
 });
