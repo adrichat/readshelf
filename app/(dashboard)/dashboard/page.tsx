@@ -23,7 +23,7 @@ export default async function DashboardPage() {
         <span>
           Ton profil est accessible sur{" "}
           <Link href={`/${session!.user!.username}`} className="text-violet-400 hover:underline" target="_blank">
-            readshelf.app/{session!.user!.username ?? "…"}
+            readshelf.dev/{session!.user!.username ?? "…"}
           </Link>
         </span>
         <CopyLinkButton username={session!.user!.username ?? ""} />

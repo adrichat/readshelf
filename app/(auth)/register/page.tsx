@@ -1,23 +1,48 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
-import { BookOpen, AtSign, Mail } from "lucide-react"
+import { BookOpen, AtSign, Mail, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type Step = "username" | "method" | "email-form" | "sent"
+type UsernameCheck = "idle" | "checking" | "available" | "taken"
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams()
   const [step, setStep] = useState<Step>("username")
-  const [username, setUsername] = useState("")
+  const [username, setUsername] = useState(
+    () => searchParams.get("username")?.toLowerCase().replace(/[^a-z0-9_-]/g, "") ?? ""
+  )
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>("idle")
+  const latestUsername = useRef("")
+
+  useEffect(() => {
+    latestUsername.current = username
+    setError("")
+    if (username.length < 3 || !/^[a-z0-9_-]+$/.test(username)) {
+      setUsernameCheck("idle")
+      return
+    }
+    setUsernameCheck("checking")
+    const timeout = setTimeout(async () => {
+      const res = await fetch(`/api/username/check?username=${username}`)
+      const data = await res.json()
+      if (latestUsername.current === username) {
+        setUsernameCheck(data.available ? "available" : "taken")
+      }
+    }, 400)
+    return () => clearTimeout(timeout)
+  }, [username])
 
   async function checkUsername() {
     if (!username.trim() || username.length < 3) {
@@ -29,15 +54,19 @@ export default function RegisterPage() {
       return
     }
 
-    setLoading(true)
-    setError("")
-    const res = await fetch(`/api/username/check?username=${username}`)
-    const data = await res.json()
-    setLoading(false)
+    if (usernameCheck !== "available") {
+      setLoading(true)
+      setError("")
+      const res = await fetch(`/api/username/check?username=${username}`)
+      const data = await res.json()
+      setLoading(false)
 
-    if (!data.available) {
-      setError("Ce nom d'utilisateur est déjà pris.")
-      return
+      if (!data.available) {
+        setUsernameCheck("taken")
+        setError("Ce nom d'utilisateur est déjà pris.")
+        return
+      }
+      setUsernameCheck("available")
     }
 
     sessionStorage.setItem("pending_username", username)
@@ -90,7 +119,7 @@ export default function RegisterPage() {
         </div>
         <p className="text-sm text-gray-500 mb-8">
           {step === "username" && "Crée ton profil de lecteur et partage ta bibliothèque."}
-          {step === "method" && `Ton URL sera readshelf.app/${username}`}
+          {step === "method" && `Ton URL sera readshelf.dev/${username}`}
           {step === "email-form" && `On enverra un email de confirmation à ${email || "ton adresse"}.`}
           {step === "sent" && `Un email de confirmation a été envoyé à ${email}. Clique sur le lien pour activer ton compte.`}
         </p>
@@ -109,7 +138,18 @@ export default function RegisterPage() {
                   className="border-0 bg-transparent text-white placeholder:text-gray-600 focus-visible:ring-0"
                 />
               </div>
-              <p className="text-xs text-gray-600 mt-1">readshelf.app/{username || "ton-nom"}</p>
+              <p className="text-xs text-gray-600 mt-1">readshelf.dev/{username || "ton-nom"}</p>
+              {!error && usernameCheck === "checking" && (
+                <p className="text-xs text-gray-500 mt-2">Vérification…</p>
+              )}
+              {!error && usernameCheck === "available" && (
+                <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Nom d&apos;utilisateur disponible
+                </p>
+              )}
+              {!error && usernameCheck === "taken" && (
+                <p className="text-xs text-red-400 mt-2">Ce nom d&apos;utilisateur est déjà pris.</p>
+              )}
               {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
             </div>
             <Button
@@ -232,14 +272,35 @@ export default function RegisterPage() {
         )}
 
         {step !== "sent" && (
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Tu as déjà un compte ?{" "}
-            <Link href="/login" className="text-violet-400 hover:text-violet-300">
-              Se connecter
-            </Link>
-          </p>
+          <>
+            <p className="mt-6 text-center text-sm text-gray-600">
+              Tu as déjà un compte ?{" "}
+              <Link href="/login" className="text-violet-400 hover:text-violet-300">
+                Se connecter
+              </Link>
+            </p>
+            <p className="mt-3 text-center text-xs text-gray-600">
+              En créant un compte, tu acceptes les{" "}
+              <Link href="/cgu-cgv" className="text-gray-400 hover:text-gray-300 underline underline-offset-2">
+                CGU/CGV
+              </Link>{" "}
+              et la{" "}
+              <Link href="/confidentialite" className="text-gray-400 hover:text-gray-300 underline underline-offset-2">
+                politique de confidentialité
+              </Link>
+              .
+            </p>
+          </>
         )}
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   )
 }

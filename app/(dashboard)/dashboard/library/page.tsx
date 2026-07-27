@@ -166,8 +166,11 @@ export default function LibraryPage() {
       return false
     }
 
+    // Le serveur calcule le `order` d'ajout (fin de liste des favoris) :
+    // on reprend sa valeur plutôt que de la deviner côté client.
+    const updated = await res.json()
     setBooks((prev) =>
-      prev.map((b) => (b.id === ub.id ? { ...b, isFavorite: next } : b))
+      prev.map((b) => (b.id === ub.id ? { ...b, isFavorite: updated.isFavorite, order: updated.order } : b))
     )
     return true
   }
@@ -313,7 +316,7 @@ export default function LibraryPage() {
                     )}
                     <button
                       onClick={() => handleFavorite(fav)}
-                      className="absolute top-1 right-1 p-1.5 rounded bg-black/70 hover:bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 p-1.5 rounded bg-black/70 hover:bg-black/90 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       title="Retirer des favoris"
                     >
                       <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
@@ -433,8 +436,8 @@ export default function LibraryPage() {
                             <div className="absolute inset-0 flex items-center justify-center text-2xl">📖</div>
                           )}
 
-                          {/* Actions au hover */}
-                          <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* Actions : toujours visibles sur mobile (pas de hover tactile), au survol sur desktop */}
+                          <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => handleFavorite(ub)}
                               className="p-1.5 rounded bg-black/70 hover:bg-black/90 transition-colors"

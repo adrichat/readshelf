@@ -85,7 +85,7 @@ export default function SetupPage() {
               />
             </div>
             <p className="text-xs text-gray-600 mt-1">
-              readshelf.app/<span className="text-violet-400">{username || "ton-nom"}</span>
+              readshelf.dev/<span className="text-violet-400">{username || "ton-nom"}</span>
             </p>
             {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
           </div>

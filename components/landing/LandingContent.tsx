@@ -1,10 +1,29 @@
 "use client"
 
+import { useState, type CSSProperties, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { BookOpen, Star, Palette, Globe, LayoutDashboard } from "lucide-react"
+import { BookOpen, Star, Palette, Globe, LayoutDashboard, Sparkles, Camera, Video, Headphones, BookMarked, Link2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+
+// Override du thème shadcn (violet par défaut) pour toute la page d'accueil
+const THEME_OVERRIDE = {
+  "--primary": "#d97706",
+  "--primary-foreground": "#ffffff",
+  "--accent": "#d97706",
+  "--accent-foreground": "#ffffff",
+  "--ring": "#f59e0b",
+} as CSSProperties
+
+const SOCIAL_PILLS = [
+  { icon: Camera, label: "Instagram" },
+  { icon: Video, label: "YouTube" },
+  { icon: Headphones, label: "Spotify" },
+  { icon: BookMarked, label: "Goodreads" },
+  { icon: Link2, label: "Lien perso" },
+]
 
 const DEMO_BOOKS = [
   { title: "Dune", color: "#c2500a" },
@@ -12,19 +31,127 @@ const DEMO_BOOKS = [
   { title: "Watchmen", color: "#1e3a5f" },
   { title: "Fondation", color: "#2d4a22" },
   { title: "Berserk", color: "#3a1a1a" },
-  { title: "Le Seigneur des Anneaux", color: "#2a2a1a" },
 ]
 
-export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
+const FEATURES = [
+  {
+    icon: BookOpen,
+    title: "Bibliothèque dynamique",
+    desc: "Ajoute livres, BD et mangas. Les couvertures sont récupérées automatiquement.",
+  },
+  {
+    icon: Palette,
+    title: "Entièrement personnalisable",
+    desc: "Fond, couleurs, polices, effets — ta page reflète ton univers de lecteur.",
+  },
+  {
+    icon: Globe,
+    title: "URL unique",
+    desc: "Une adresse à ton nom : readshelf.dev/toi. Partage-la partout.",
+  },
+  {
+    icon: Sparkles,
+    title: "Effets premium",
+    desc: "Particules, lueurs, layouts avancés — débloque des rendus uniques pour ta vitrine.",
+  },
+]
+
+function ProfilePreviewCard() {
   return (
-    <div className="min-h-screen bg-[#101016] text-white flex flex-col">
-      {/* Halo ambiant — couleur douce qui dérive lentement dans le spectre */}
+    <motion.div
+      initial={{ opacity: 0, y: 40, rotate: -2 }}
+      animate={{ opacity: 1, y: 0, rotate: -2 }}
+      transition={{ duration: 0.8, delay: 0.35 }}
+      whileHover={{ rotate: 0, scale: 1.02 }}
+      className="relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-amber-900/20 overflow-hidden"
+    >
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-black/20 relative z-10">
+        <div className="flex gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-white/10" />
+          <span className="w-2 h-2 rounded-full bg-white/10" />
+          <span className="w-2 h-2 rounded-full bg-white/10" />
+        </div>
+        <span className="ml-2 text-[11px] text-gray-500 font-mono">readshelf.dev/juliette</span>
+      </div>
+
+      {/* Fond animé (exemple de personnalisation avec une image/gif) */}
+      <div className="absolute inset-0 top-9 overflow-hidden" aria-hidden>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: "url(/demo/profile-bg.gif)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
+      <div className="relative px-6 pt-7 pb-6 flex flex-col items-center text-center">
+        <div className="w-16 h-16 rounded-full mb-3 flex items-center justify-center text-xl font-bold bg-gradient-to-br from-amber-400/40 to-orange-600/30 ring-2 ring-white/50 text-white shadow-lg">
+          J
+        </div>
+        <h3 className="font-semibold text-white drop-shadow">Juliette Moreau</h3>
+        <p className="text-xs text-gray-200 mb-2 drop-shadow">@juliette</p>
+        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-300/30 mb-4">
+          ✦ Lecteur Premium
+        </span>
+
+        {/* Liens / médias (link in bio) */}
+        <div className="flex items-center gap-2 mb-4">
+          {SOCIAL_PILLS.slice(0, 3).map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="w-7 h-7 rounded-full bg-black/30 border border-white/20 flex items-center justify-center"
+              title={label}
+            >
+              <Icon className="w-3.5 h-3.5 text-white" />
+            </span>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-5 mb-5">
+          {[
+            ["42", "livres"],
+            ["8", "en cours"],
+            ["10", "lus"],
+            ["1.2k", "vues"],
+          ].map(([n, l]) => (
+            <div key={l} className="text-center">
+              <div className="text-lg font-bold text-white drop-shadow">{n}</div>
+              <div className="text-[10px] text-gray-200 drop-shadow">{l}</div>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          {DEMO_BOOKS.map((book) => (
+            <div
+              key={book.title}
+              className="w-8 rounded-sm"
+              style={{ height: 52, backgroundColor: book.color, boxShadow: `2px 2px 10px ${book.color}50` }}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const router = useRouter()
+  const [claimUsername, setClaimUsername] = useState("")
+
+  function handleClaim(e: FormEvent) {
+    e.preventDefault()
+    const username = claimUsername.trim()
+    router.push(username ? `/register?username=${encodeURIComponent(username)}` : "/register")
+  }
+
+  return (
+    <div className="min-h-screen bg-[#101016] text-white flex flex-col" style={THEME_OVERRIDE}>
+      {/* Halo ambiant — lueurs ambrées qui dérivent lentement */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <style>{`
-          @keyframes lp-hue {
-            from { filter: hue-rotate(0deg); }
-            to { filter: hue-rotate(360deg); }
-          }
           @keyframes lp-glow1 {
             0%, 100% { transform: translate(-15%, -20%) scale(1); opacity: 0.8; }
             50% { transform: translate(10%, 12%) scale(1.3); opacity: 1; }
@@ -34,38 +161,36 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
             50% { transform: translate(-12%, -10%) scale(0.9); opacity: 0.6; }
           }
         `}</style>
-        <div className="absolute inset-0" style={{ animation: "lp-hue 45s linear infinite" }}>
-          <div
-            className="absolute w-[70vw] h-[70vw] rounded-full blur-3xl"
-            style={{
-              top: "-5%",
-              left: "10%",
-              backgroundColor: "rgba(139,92,246,0.28)",
-              animation: "lp-glow1 18s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="absolute w-[55vw] h-[55vw] rounded-full blur-3xl"
-            style={{
-              bottom: "0%",
-              right: "5%",
-              backgroundColor: "rgba(139,92,246,0.2)",
-              animation: "lp-glow2 24s ease-in-out infinite",
-            }}
-          />
-        </div>
+        <div
+          className="absolute w-[70vw] h-[70vw] rounded-full blur-3xl"
+          style={{
+            top: "-5%",
+            left: "10%",
+            backgroundColor: "rgba(217,119,6,0.25)",
+            animation: "lp-glow1 18s ease-in-out infinite",
+          }}
+        />
+        <div
+          className="absolute w-[55vw] h-[55vw] rounded-full blur-3xl"
+          style={{
+            bottom: "0%",
+            right: "5%",
+            backgroundColor: "rgba(245,158,11,0.18)",
+            animation: "lp-glow2 24s ease-in-out infinite",
+          }}
+        />
       </div>
 
       {/* Nav */}
-      <nav className="relative flex items-center justify-between px-6 py-4 border-b border-white/5">
+      <nav className="relative flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-violet-400" />
+          <BookOpen className="w-5 h-5 text-amber-400" />
           <span className="font-semibold tracking-tight">ReadShelf</span>
         </div>
         <div className="flex items-center gap-3">
           {isLoggedIn ? (
             <Link href="/dashboard">
-              <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white flex items-center gap-2">
+              <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Button>
@@ -78,7 +203,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white">
+                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
                   Commencer
                 </Button>
               </Link>
@@ -94,13 +219,13 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Badge className="mb-6 bg-violet-500/10 text-violet-300 border-violet-500/20">
+          <Badge className="mb-6 bg-amber-500/10 text-amber-300 border-amber-500/20">
             ✦ Ta bibliothèque, ton identité
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
             Ta bibliothèque mérite
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-purple-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500">
               sa vitrine
             </span>
           </h1>
@@ -110,7 +235,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href={isLoggedIn ? "/dashboard" : "/register"}>
-              <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white px-8">
+              <Button size="lg" className="bg-amber-600 hover:bg-amber-700 text-white px-8">
                 {isLoggedIn ? "Mon dashboard" : "Créer ma page"}
               </Button>
             </Link>
@@ -121,48 +246,82 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
             </Link>
           </div>
         </motion.div>
-
-        {/* Demo shelf */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-20 flex gap-3 items-end"
-        >
-          {DEMO_BOOKS.map((book, i) => (
-            <motion.div
-              key={book.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + i * 0.08 }}
-              className="relative group cursor-pointer"
-            >
-              <div
-                className="w-16 rounded-sm shadow-2xl transition-transform duration-200 group-hover:-translate-y-2"
-                style={{
-                  height: `${100 + Math.sin(i) * 20}px`,
-                  backgroundColor: book.color,
-                  boxShadow: `4px 4px 20px ${book.color}40`,
-                }}
-              />
-              <div className="absolute inset-y-0 left-0 w-1 bg-black/20 rounded-l-sm" />
-            </motion.div>
-          ))}
-        </motion.div>
-        <p className="mt-4 text-xs text-gray-500">readshelf.app/ton-nom</p>
       </section>
 
+      {/* Link in bio */}
+      <section className="relative px-6 py-20">
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <Badge className="mb-4 bg-amber-500/10 text-amber-300 border-amber-500/20">
+              ✦ Link in bio, façon lecteur
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
+              Un seul lien pour{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500">
+                tout
+              </span>{" "}
+              partager
+            </h2>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              Ta bibliothèque, ton Instagram, ta chaîne YouTube, ta playlist Spotify, ton Goodreads —
+              regroupe tous tes médias sur une seule page et glisse-la dans ta bio Instagram, TikTok
+              ou Discord.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SOCIAL_PILLS.map(({ icon: Icon, label }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-gray-300"
+                >
+                  <Icon className="w-3.5 h-3.5 text-amber-400" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center md:justify-end">
+            <ProfilePreviewCard />
+          </div>
+        </div>
+      </section>
+
+      {/* Réservation de nom d'utilisateur */}
+      {!isLoggedIn && (
+        <section className="relative px-6 pb-20">
+          <div className="max-w-3xl mx-auto rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-8 md:p-10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Réserve ton nom avant qu&apos;on te le prenne.</h2>
+            <p className="text-gray-400 mb-6 max-w-md">
+              Choisis ton identifiant, on te dit tout de suite s&apos;il est libre.
+            </p>
+            <form onSubmit={handleClaim} className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 flex items-center gap-1 bg-black/30 border border-white/10 rounded-lg px-4 h-12">
+                <span className="text-gray-500 text-sm whitespace-nowrap">readshelf.dev/</span>
+                <input
+                  value={claimUsername}
+                  onChange={(e) => setClaimUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                  placeholder="ton-nom"
+                  className="flex-1 min-w-0 bg-transparent text-white placeholder:text-gray-600 outline-none text-sm"
+                />
+              </div>
+              <Button type="submit" size="lg" className="bg-amber-600 hover:bg-amber-700 text-white h-12 px-8">
+                Réserver maintenant
+              </Button>
+            </form>
+          </div>
+        </section>
+      )}
+
       {/* Features */}
-      <section className="relative border-t border-white/5 px-6 py-20">
-        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
-          {[
-            { icon: BookOpen, title: "Bibliothèque dynamique", desc: "Ajoute livres, BD et mangas. Les couvertures sont récupérées automatiquement via Open Library." },
-            { icon: Palette, title: "Entièrement personnalisable", desc: "Fond, couleurs, polices, effets — ta page reflète ton univers de lecteur." },
-            { icon: Globe, title: "URL unique", desc: "Une adresse à ton nom : readshelf.app/toi. Partage-la partout." },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                <Icon className="w-5 h-5 text-violet-400" />
+      <section className="relative px-6 py-20">
+        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 md:grid-cols-4 gap-5">
+          {FEATURES.map(({ icon: Icon, title, desc }) => (
+            <div
+              key={title}
+              className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition-colors hover:border-amber-500/20 hover:bg-white/[0.04]"
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-amber-400" />
               </div>
               <h3 className="font-semibold text-white">{title}</h3>
               <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
@@ -172,7 +331,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* Pricing */}
-      <section className="relative border-t border-white/5 px-6 py-20">
+      <section className="relative px-6 py-20">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">Simple et transparent</h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -183,7 +342,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
               <ul className="space-y-3 text-sm text-gray-400">
                 {["Profil public avec URL unique", "Bibliothèque illimitée", "Couvertures automatiques", "Rayons personnalisés", "Thèmes basiques"].map(f => (
                   <li key={f} className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-violet-400 shrink-0" />
+                    <Star className="w-4 h-4 text-amber-400 shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -193,29 +352,47 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-8 relative">
-              <Badge className="absolute top-4 right-4 bg-violet-500 text-white text-xs">Le plus populaire</Badge>
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-8 relative shadow-2xl shadow-amber-900/10">
+              <Badge className="absolute top-4 right-4 bg-amber-500 text-white text-xs">Le plus populaire</Badge>
               <h3 className="text-xl font-bold mb-1">✦ Premium</h3>
               <div className="text-4xl font-bold mb-1">4,99€</div>
-              <p className="text-sm text-violet-400 mb-6">Paiement unique. Tu le gardes pour toujours.</p>
+              <p className="text-sm text-amber-400 mb-6">Paiement unique. Tu le gardes pour toujours.</p>
               <ul className="space-y-3 text-sm text-gray-300">
                 {["Badge Lecteur Premium", "Layouts avancés (étagère, mosaïque)", "Polices personnalisées", "Effets spéciaux (particules, lueur)", "Personnalisation avancée", "SEO et métadonnées custom"].map(f => (
                   <li key={f} className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-violet-400 shrink-0" />
+                    <Star className="w-4 h-4 text-amber-400 shrink-0" />
                     {f}
                   </li>
                 ))}
               </ul>
               <Link href="/dashboard/premium" className="block mt-8">
-                <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white">Acheter</Button>
+                <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">Acheter</Button>
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="relative border-t border-white/5 px-6 py-6 text-center text-xs text-gray-500">
-        © 2025 ReadShelf
+      {/* CTA final */}
+      <section className="relative px-6 py-16">
+        <div className="max-w-3xl mx-auto rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-600/5 px-8 py-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">Prêt à donner une vitrine à tes lectures ?</h2>
+          <p className="text-gray-400 mb-8 max-w-md mx-auto">Crée ta page en quelques minutes, gratuitement.</p>
+          <Link href={isLoggedIn ? "/dashboard" : "/register"}>
+            <Button size="lg" className="bg-amber-600 hover:bg-amber-700 text-white px-8">
+              {isLoggedIn ? "Mon dashboard" : "Créer ma page"}
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      <footer className="relative px-6 py-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-center text-xs text-gray-500">
+        <span>© {new Date().getFullYear()} ReadShelf</span>
+        <div className="flex items-center gap-4">
+          <Link href="/mentions-legales" className="hover:text-gray-300 transition-colors">Mentions légales</Link>
+          <Link href="/cgu-cgv" className="hover:text-gray-300 transition-colors">CGU/CGV</Link>
+          <Link href="/confidentialite" className="hover:text-gray-300 transition-colors">Confidentialité</Link>
+        </div>
       </footer>
     </div>
   )

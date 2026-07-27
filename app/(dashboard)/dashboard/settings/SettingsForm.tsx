@@ -305,7 +305,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         <div>
           <Label className="text-sm text-gray-400 mb-2 block">URL de ton profil</Label>
           <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-500">
-            readshelf.app/<span className="text-white">{initialData.username}</span>
+            readshelf.dev/<span className="text-white">{initialData.username}</span>
           </div>
         </div>
 

@@ -89,12 +89,32 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "INVALID_STATUS" }, { status: 400 })
   }
 
+  // Si on ajoute un favori (pas juste un re-toggle idempotent), on lui assigne
+  // explicitement un `order` en fin de liste. Sans ça, `order` reste à sa valeur
+  // par défaut (0) pour tous les livres jamais glissés dans la zone favoris, ce
+  // qui les fait entrer en collision et se départager par `addedAt` au lieu de
+  // s'ajouter après les favoris existants.
+  let orderUpdate: { order?: number } = {}
+
   if (isFavorite) {
-    const count = await db.userBook.count({
-      where: { userId: session.user.id, isFavorite: true },
+    const current = await db.userBook.findUnique({
+      where: { id: userBookId, userId: session.user.id },
+      select: { isFavorite: true },
     })
-    if (count >= 4) {
-      return NextResponse.json({ error: "MAX_FAVORITES" }, { status: 400 })
+    if (!current) {
+      return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
+    }
+
+    if (!current.isFavorite) {
+      const agg = await db.userBook.aggregate({
+        where: { userId: session.user.id, isFavorite: true },
+        _count: true,
+        _max: { order: true },
+      })
+      if (agg._count >= 4) {
+        return NextResponse.json({ error: "MAX_FAVORITES" }, { status: 400 })
+      }
+      orderUpdate = { order: (agg._max.order ?? -1) + 1 }
     }
   }
 
@@ -103,6 +123,7 @@ export async function PATCH(req: NextRequest) {
     data: {
       ...(isFavorite !== undefined && { isFavorite }),
       ...(status !== undefined && { status: status as ValidStatus }),
+      ...orderUpdate,
     },
     include: { book: true },
   })
