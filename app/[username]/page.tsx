@@ -101,17 +101,21 @@ export default async function ProfilePage({ params }: Props) {
       coverUrl: ub.book.coverUrl,
     }))
 
-  const allBooks = user.userBooks.map((ub) => ({
-    id: ub.id,
-    status: ub.status,
-    rating: ub.rating,
-    book: {
-      title: ub.book.title,
-      authors: ub.book.authors,
-      coverUrl: ub.book.coverUrl,
-      type: ub.book.type as string,
-    },
-  }))
+  // Les favoris ont déjà leur section dédiée plus haut : on les exclut d'ici
+  // pour ne pas les afficher deux fois sur le profil
+  const allBooks = user.userBooks
+    .filter((ub) => !ub.isFavorite)
+    .map((ub) => ({
+      id: ub.id,
+      status: ub.status,
+      rating: ub.rating,
+      book: {
+        title: ub.book.title,
+        authors: ub.book.authors,
+        coverUrl: ub.book.coverUrl,
+        type: ub.book.type as string,
+      },
+    }))
 
   const totalBooks = user.userBooks.length
   const readingCount = user.userBooks.filter((b) => b.status === "READING").length
@@ -277,13 +281,13 @@ export default async function ProfilePage({ params }: Props) {
 
         {allBooks.length > 0 ? (
           <ProfileBooks books={allBooks} accentColor={accentColor} layout={layout} shelfColor={shelfColor} fg={fg} />
-        ) : (
+        ) : totalBooks === 0 ? (
           <div className="text-center py-28">
             <div className="text-6xl mb-5">📚</div>
             <p className="text-lg" style={{ color: fg.muted }}>Cette bibliothèque est encore vide.</p>
             <p className="text-sm mt-2" style={{ color: fg.faint }}>Reviens plus tard !</p>
           </div>
-        )}
+        ) : null}
       </div>
 
       <footer className="pb-10 text-center">

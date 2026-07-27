@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { STATUS_CONFIG } from "./BookCard"
+import { Hover3D } from "./Hover3D"
 import { useMediaQuery } from "@/lib/use-media-query"
 
 interface Book {
@@ -94,68 +95,56 @@ export function LibraryShelves({ books, shelfColor = "#7a4518", accentColor = "#
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: (si * perShelf + bi) * 0.03, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -6 }}
-                  className="relative group cursor-pointer"
+                  className="relative cursor-pointer"
                   style={{ width: coverWidth, flexShrink: 0 }}
                 >
-                  <div
-                    className="relative overflow-hidden"
-                    style={{
-                      aspectRatio: "2/3",
-                      borderRadius: "3px 3px 0 0",
-                      backgroundColor: "rgba(0,0,0,0.35)",
-                      boxShadow: "3px 0 12px rgba(0,0,0,0.5)",
-                    }}
-                  >
-                    {book.coverUrl ? (
-                      <Image
-                        src={book.coverUrl}
-                        alt={book.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 30vw, (max-width: 768px) 20vw, 180px"
-                        draggable={false}
-                      />
-                    ) : (
-                      <div
-                        className="absolute inset-0 flex items-center justify-center p-2"
-                        style={{ background: `linear-gradient(160deg, ${wood.inside}, ${wood.insideDark})` }}
-                      >
-                        <p className="text-[11px] text-white/75 text-center leading-tight line-clamp-4">
-                          {book.title}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Overlay au survol */}
-                    <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex flex-col justify-end p-2">
-                      <p className="text-xs text-white font-medium leading-tight line-clamp-3">{book.title}</p>
-                      {book.authors[0] && (
-                        <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: accentColor }}>
-                          {book.authors[0]}
-                        </p>
+                  <Hover3D>
+                    <div
+                      className="relative overflow-hidden"
+                      style={{
+                        aspectRatio: "2/3",
+                        borderRadius: "3px 3px 0 0",
+                        backgroundColor: "rgba(0,0,0,0.35)",
+                        boxShadow: "3px 0 12px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {book.coverUrl ? (
+                        <Image
+                          src={book.coverUrl}
+                          alt={book.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 30vw, (max-width: 768px) 20vw, 180px"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0 flex items-center justify-center p-2"
+                          style={{ background: `linear-gradient(160deg, ${wood.inside}, ${wood.insideDark})` }}
+                        >
+                          <p className="text-[11px] text-white/75 text-center leading-tight line-clamp-4">
+                            {book.title}
+                          </p>
+                        </div>
                       )}
-                      {book.rating != null && (
-                        <p className="text-[10px] text-yellow-400 mt-0.5">{"★".repeat(book.rating)}</p>
+
+                      {/* Statut — toujours visible */}
+                      {book.status && STATUS_CONFIG[book.status] && (
+                        <div
+                          className="absolute top-1 left-1 flex items-center gap-1 px-1.5 py-0.5 rounded-full max-w-[calc(100%-8px)]"
+                          style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: STATUS_CONFIG[book.status].color }}
+                          />
+                          <span className="text-[10px] leading-none text-white/90 truncate">
+                            {STATUS_CONFIG[book.status].label}
+                          </span>
+                        </div>
                       )}
                     </div>
-
-                    {/* Statut — visible par défaut, placé après l'overlay pour rester lisible au survol */}
-                    {book.status && STATUS_CONFIG[book.status] && (
-                      <div
-                        className="absolute top-1 left-1 flex items-center gap-1 px-1.5 py-0.5 rounded-full max-w-[calc(100%-8px)]"
-                        style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
-                      >
-                        <span
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: STATUS_CONFIG[book.status].color }}
-                        />
-                        <span className="text-[10px] leading-none text-white/90 truncate">
-                          {STATUS_CONFIG[book.status].label}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  </Hover3D>
                 </motion.div>
               ))}
             </div>

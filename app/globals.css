@@ -112,6 +112,83 @@ body {
   border-radius: 3px;
 }
 
+/* Bascule 3D au survol — suivi continu de la souris (piloté en JS, voir
+   Hover3D.tsx qui pousse --rx/--ry/--px/--py à chaque mousemove, pixel par
+   pixel, sans passer par des zones de survol discrètes). --tilt-speed vaut
+   0s pendant le survol (réponse immédiate) et n'est réglé en douceur que
+   pour le retour au repos, au mouseleave. */
+@layer utilities {
+  .hover-3d {
+    display: grid;
+    width: 100%;
+    perspective: 75rem;
+    --rx: 0deg;
+    --ry: 0deg;
+    --px: 50%;
+    --py: 50%;
+    --tilt-speed: .4s;
+    filter: drop-shadow(calc(var(--ry) * -0.4px) calc(var(--rx) * 0.4px) 14px rgba(0, 0, 0, 0.35));
+    transition: filter var(--tilt-speed) ease-out;
+
+    & > :first-child {
+      position: relative;
+      overflow: hidden;
+      transform: rotate3d(1, 0, 0, var(--rx)) rotate3d(0, 1, 0, var(--ry));
+      transition: transform var(--tilt-speed) ease-out;
+      will-change: transform;
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0;
+        background-image: radial-gradient(
+          circle at var(--px) var(--py),
+          rgba(255, 255, 255, 0.35) 0%,
+          rgba(255, 255, 255, 0) 55%
+        );
+        transition: opacity .3s ease-out;
+      }
+    }
+
+    &:hover > :first-child::before {
+      opacity: 1;
+    }
+  }
+
+  /* Voile holographique — réservé aux livres préférés. Réutilise --px/--py
+     (déjà piloté au pixel près par Hover3D.tsx) pour que le reflet
+     arc-en-ciel suive exactement la position du curseur. */
+  .holo > :first-child::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: color-dodge;
+    background-image: linear-gradient(
+      115deg,
+      transparent 20%,
+      #ff5ecb 32%,
+      #7dd3fc 40%,
+      #a78bfa 48%,
+      #facc15 56%,
+      #34d399 64%,
+      transparent 76%
+    );
+    background-size: 250% 250%;
+    background-position: var(--px) var(--py);
+    transition: opacity .3s ease-out;
+  }
+
+  .holo:hover > :first-child::after {
+    opacity: 0.6;
+  }
+}
+
 .legal-content h2 {
   font-size: 1.125rem;
   font-weight: 600;

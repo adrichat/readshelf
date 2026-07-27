@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { foregroundFor, type ProfileFg } from "@/lib/profile-colors"
+import { Hover3D } from "./Hover3D"
 
 interface FavoriteBook {
   id: string
@@ -45,37 +46,31 @@ export function FavoriteBooks({
       <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
         {slots.map((book, i) =>
           book ? (
-            <div key={book.id} className="group relative flex flex-col gap-2">
-              <div
-                className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-lg transition-transform duration-200 group-hover:-translate-y-1"
-                style={{ boxShadow: `0 4px 24px ${accentColor}20` }}
-              >
-                {book.coverUrl ? (
-                  <Image
-                    src={book.coverUrl}
-                    alt={book.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 25vw, (max-width: 1024px) 15vw, 200px"
-                  />
-                ) : (
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center"
-                    style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}05)` }}
-                  >
-                    <div className="text-3xl mb-2">📖</div>
-                    <p className="text-xs line-clamp-2 leading-tight" style={{ color: fg.body }}>{book.title}</p>
-                  </div>
-                )}
-
-                {/* Overlay titre au hover */}
-                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                  <p className="text-xs text-white font-semibold line-clamp-2 leading-snug">{book.title}</p>
-                  {book.authors[0] && (
-                    <p className="text-xs mt-1" style={{ color: `${accentColor}cc` }}>{book.authors[0]}</p>
+            <div key={book.id} className="flex flex-col gap-2">
+              <Hover3D holo>
+                <div
+                  className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-lg"
+                  style={{ boxShadow: `0 4px 24px ${accentColor}20` }}
+                >
+                  {book.coverUrl ? (
+                    <Image
+                      src={book.coverUrl}
+                      alt={book.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 25vw, (max-width: 1024px) 15vw, 200px"
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center"
+                      style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}05)` }}
+                    >
+                      <div className="text-3xl mb-2">📖</div>
+                      <p className="text-xs line-clamp-2 leading-tight" style={{ color: fg.body }}>{book.title}</p>
+                    </div>
                   )}
                 </div>
-              </div>
+              </Hover3D>
               <p className="text-xs line-clamp-1 font-medium" style={{ color: fg.body }}>{book.title}</p>
             </div>
           ) : (
