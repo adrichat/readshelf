@@ -52,7 +52,7 @@ export default async function PremiumPage({ searchParams }: Props) {
           <p className="text-sm text-gray-500 mb-8">Merci pour ton soutien !</p>
 
           {session_id && (
-            <div className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-sm text-green-300">
+            <div className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-sm text-green-700 dark:text-green-300">
               Paiement confirmé — ton compte est maintenant Premium. ✦
             </div>
           )}

@@ -5,7 +5,7 @@ import { Trophy, Eye } from "lucide-react"
 import { PremiumSparkle } from "@/components/PremiumSparkle"
 
 // Or, argent, bronze pour le podium — gris pour le reste
-const RANK_COLORS = ["text-amber-300", "text-slate-300", "text-amber-600"]
+const RANK_COLORS = ["text-amber-600 dark:text-amber-300", "text-slate-500 dark:text-slate-300", "text-amber-700 dark:text-amber-600"]
 
 export default async function RankingPage() {
   const session = await auth()
@@ -36,7 +36,7 @@ export default async function RankingPage() {
   return (
     <div className="p-4 sm:p-8 max-w-2xl">
       <div className="flex items-center gap-2 mb-1">
-        <Trophy className="w-5 h-5 text-amber-300" />
+        <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-300" />
         <h1 className="text-2xl font-bold">Classement</h1>
       </div>
       <p className="text-sm text-gray-500 mb-8">
@@ -44,10 +44,10 @@ export default async function RankingPage() {
       </p>
 
       {top.length === 0 ? (
-        <div className="text-center py-20 text-gray-600">
-          <Trophy className="w-10 h-10 mx-auto mb-4 text-gray-700" />
+        <div className="text-center py-20 text-gray-500 dark:text-gray-600">
+          <Trophy className="w-10 h-10 mx-auto mb-4 text-gray-400 dark:text-gray-700" />
           <p>Aucun profil visité pour le moment.</p>
-          <p className="text-sm text-gray-700 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-700 mt-2">
             Partage ta page pour lancer le classement !
           </p>
         </div>
@@ -70,7 +70,7 @@ export default async function RankingPage() {
               >
                 <span
                   className={`w-8 text-center text-lg font-bold tabular-nums shrink-0 ${
-                    RANK_COLORS[i] ?? "text-gray-600"
+                    RANK_COLORS[i] ?? "text-gray-500 dark:text-gray-600"
                   }`}
                 >
                   {i + 1}
@@ -103,10 +103,10 @@ export default async function RankingPage() {
                 </div>
 
                 <div
-                  className="flex items-center gap-1.5 text-sm text-gray-400 shrink-0"
+                  className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 shrink-0"
                   title="Vues du profil"
                 >
-                  <Eye className="w-4 h-4 text-gray-600" />
+                  <Eye className="w-4 h-4 text-gray-400 dark:text-gray-600" />
                   <span className="tabular-nums">
                     {p.profileViews.toLocaleString("fr-FR")}
                   </span>

@@ -253,7 +253,7 @@ export default async function ProfilePage({ params }: Props) {
               </div>
               {readingCount > 0 && (
                 <div className="text-center">
-                  <span className="block text-2xl font-bold" style={{ color: accentText }}>{readingCount}</span>
+                  <span className="block text-2xl font-bold" style={{ color: fg.heading }}>{readingCount}</span>
                   <span className="text-xs" style={{ color: fg.muted }}>📖 en cours</span>
                 </div>
               )}
