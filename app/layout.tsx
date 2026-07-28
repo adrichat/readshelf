@@ -8,8 +8,8 @@ import "./globals.css"
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 
 export const metadata: Metadata = {
-  title: "ReadShelf — Ta bibliothèque, ton identité",
-  description: "Crée ta page de lecteur personnalisée. Affiche tes livres, BD et mangas préférés avec style.",
+  title: "ReadShelf — Le Link-in-Bio des lecteurs",
+  description: "Bibliothèque, réseaux, tous tes liens : une seule page à glisser dans ta bio. Le Link-in-Bio pensé pour les lecteurs.",
 }
 
 // Pose la classe .dark/.light sur <html> avant l'hydratation (le dashboard

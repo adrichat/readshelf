@@ -47,7 +47,7 @@ const FEATURES = [
   {
     icon: Globe,
     title: "URL unique",
-    desc: "Une adresse à ton nom : readshelf.dev/toi. Partage-la partout.",
+    desc: "Une adresse mémorable — readshelf.dev/toi — à partager en un clic.",
   },
   {
     icon: Sparkles,
@@ -62,8 +62,8 @@ function ProfilePreviewCard() {
       initial={{ opacity: 0, y: 40, rotate: -2 }}
       animate={{ opacity: 1, y: 0, rotate: -2 }}
       transition={{ duration: 0.8, delay: 0.35 }}
-      whileHover={{ rotate: 0, scale: 1.02 }}
-      className="relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-amber-900/20 overflow-hidden"
+      whileHover={{ rotate: 0, scale: 1.04, y: -6 }}
+      className="group relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-amber-900/20 overflow-hidden transition-shadow duration-300 hover:border-amber-400/40 hover:shadow-amber-500/30"
     >
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-black/20 relative z-10">
         <div className="flex gap-1.5">
@@ -71,13 +71,13 @@ function ProfilePreviewCard() {
           <span className="w-2 h-2 rounded-full bg-white/10" />
           <span className="w-2 h-2 rounded-full bg-white/10" />
         </div>
-        <span className="ml-2 text-[11px] text-gray-500 font-mono">readshelf.dev/juliette</span>
+        <span className="ml-2 text-[11px] text-gray-500 font-mono">readshelf.dev/jim</span>
       </div>
 
       {/* Fond animé (exemple de personnalisation avec une image/gif) */}
       <div className="absolute inset-0 top-9 overflow-hidden" aria-hidden>
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-110"
           style={{
             backgroundImage: "url(/demo/profile-bg.gif)",
             backgroundSize: "cover",
@@ -88,11 +88,11 @@ function ProfilePreviewCard() {
       </div>
 
       <div className="relative px-6 pt-7 pb-6 flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-full mb-3 flex items-center justify-center text-xl font-bold bg-gradient-to-br from-amber-400/40 to-orange-600/30 ring-2 ring-white/50 text-white shadow-lg">
-          J
+        <div className="w-16 h-16 rounded-full mb-3 overflow-hidden ring-2 ring-white/50 shadow-lg transition-transform duration-300 group-hover:scale-110">
+          <img src="/demo/jim-halpert.png" alt="Jim Halpert" className="w-full h-full object-cover" />
         </div>
-        <h3 className="font-semibold text-white drop-shadow">Juliette Moreau</h3>
-        <p className="text-xs text-gray-200 mb-2 drop-shadow">@juliette</p>
+        <h3 className="font-semibold text-white drop-shadow">Jim Halpert</h3>
+        <p className="text-xs text-gray-200 mb-2 drop-shadow">@jim</p>
         <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-300/30 mb-4">
           ✦ Lecteur Premium
         </span>
@@ -220,7 +220,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
           transition={{ duration: 0.6 }}
         >
           <Badge className="mb-6 bg-amber-500/10 text-amber-300 border-amber-500/20">
-            ✦ Ta bibliothèque, ton identité
+            ✦ Le Link-in-Bio des lecteurs
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
             Ta bibliothèque mérite
@@ -230,8 +230,8 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
             </span>
           </h1>
           <p className="text-gray-300 text-lg md:text-xl max-w-xl mx-auto mb-10">
-            Romans, BD, mangas — rassemble tes lectures sur une page à ton image
-            et partage-la en un seul lien.
+            Romans, BD, mangas — ta bibliothèque devient enfin le centre de ta bio,
+            pas une ligne perdue au milieu de tes réseaux.
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href={isLoggedIn ? "/dashboard" : "/register"}>
@@ -248,7 +248,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <Badge className="mb-4 bg-amber-500/10 text-amber-300 border-amber-500/20">
-              ✦ Link in bio, façon lecteur
+              ✦ Tout, au même endroit
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
               Un seul lien pour{" "}
@@ -259,8 +259,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
             </h2>
             <p className="text-gray-400 mb-6 leading-relaxed">
               Ta bibliothèque, ton Instagram, ta chaîne YouTube, ta playlist Spotify, ton Goodreads —
-              regroupe tous tes médias sur une seule page et glisse-la dans ta bio Instagram, TikTok
-              ou Discord.
+              tout regroupé sur une page unique, à glisser dans ta bio TikTok ou Discord.
             </p>
             <div className="flex flex-wrap gap-2">
               {SOCIAL_PILLS.map(({ icon: Icon, label }) => (
