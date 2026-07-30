@@ -4,9 +4,11 @@ import { useState, type CSSProperties, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { BookOpen, Star, Palette, Globe, LayoutDashboard, Sparkles, Camera, Video, Headphones, BookMarked, Link2 } from "lucide-react"
+import { BookOpen, Star, Palette, Globe, LayoutDashboard, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
+import type { SocialKey } from "@/lib/social-links"
 
 // Fixe le thème ambre pour toute la page d'accueil (indépendant du mode clair/sombre du dashboard)
 const THEME_OVERRIDE = {
@@ -17,12 +19,11 @@ const THEME_OVERRIDE = {
   "--ring": "#f59e0b",
 } as CSSProperties
 
-const SOCIAL_PILLS = [
-  { icon: Camera, label: "Instagram" },
-  { icon: Video, label: "YouTube" },
-  { icon: Headphones, label: "Spotify" },
-  { icon: BookMarked, label: "Goodreads" },
-  { icon: Link2, label: "Lien perso" },
+const SOCIAL_LINKS: { key: SocialKey; label: string }[] = [
+  { key: "instagram", label: "Instagram" },
+  { key: "youtube", label: "YouTube" },
+  { key: "spotify", label: "Spotify" },
+  { key: "goodreads", label: "Goodreads" },
 ]
 
 const DEMO_BOOKS = [
@@ -60,10 +61,9 @@ function ProfilePreviewCard() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40, rotate: -2 }}
-      animate={{ opacity: 1, y: 0, rotate: -2 }}
-      transition={{ duration: 0.8, delay: 0.35 }}
-      whileHover={{ rotate: 0, scale: 1.04, y: -6 }}
-      className="group relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-amber-900/20 overflow-hidden transition-shadow duration-300 hover:border-amber-400/40 hover:shadow-amber-500/30"
+      animate={{ opacity: 1, y: 0, rotate: -2, transition: { duration: 0.8, delay: 0.35 } }}
+      whileHover={{ rotate: 0, scale: 1.04, y: -6, transition: { duration: 0.15, delay: 0 } }}
+      className="group relative w-full max-w-sm rounded-2xl border border-amber-500/20 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-amber-900/20 overflow-hidden transition-shadow duration-150 hover:border-amber-400/40 hover:shadow-amber-500/30"
     >
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-black/20 relative z-10">
         <div className="flex gap-1.5">
@@ -77,7 +77,7 @@ function ProfilePreviewCard() {
       {/* Fond animé (exemple de personnalisation avec une image/gif) */}
       <div className="absolute inset-0 top-9 overflow-hidden" aria-hidden>
         <div
-          className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-110"
+          className="absolute inset-0 transition-transform duration-300 ease-out group-hover:scale-110"
           style={{
             backgroundImage: "url(/demo/profile-bg.gif)",
             backgroundSize: "cover",
@@ -99,13 +99,13 @@ function ProfilePreviewCard() {
 
         {/* Liens / médias (link in bio) */}
         <div className="flex items-center gap-2 mb-4">
-          {SOCIAL_PILLS.slice(0, 3).map(({ icon: Icon, label }) => (
+          {SOCIAL_LINKS.slice(0, 3).map(({ key, label }) => (
             <span
-              key={label}
+              key={key}
               className="w-7 h-7 rounded-full bg-black/30 border border-white/20 flex items-center justify-center"
               title={label}
             >
-              <Icon className="w-3.5 h-3.5 text-white" />
+              <SocialIcon social={key} className="w-3.5 h-3.5 text-white" />
             </span>
           ))}
         </div>
@@ -219,19 +219,17 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Badge className="mb-6 bg-amber-500/10 text-amber-300 border-amber-500/20">
-            ✦ Le Link-in-Bio des lecteurs
-          </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Ta bibliothèque mérite
-            <br />
+            Le{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500">
-              sa vitrine
+              Link-in-Bio
             </span>
+            <br />
+            qui met ta bibliothèque en vitrine
           </h1>
           <p className="text-gray-300 text-lg md:text-xl max-w-xl mx-auto mb-10">
-            Romans, BD, mangas — ta bibliothèque devient enfin le centre de ta bio,
-            pas une ligne perdue au milieu de tes réseaux.
+            Tous tes livres réunis sur une page unique, prête à glisser dans ta bio
+            TikTok, Instagram ou Discord.
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href={isLoggedIn ? "/dashboard" : "/register"}>
@@ -262,15 +260,19 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
               tout regroupé sur une page unique, à glisser dans ta bio TikTok ou Discord.
             </p>
             <div className="flex flex-wrap gap-2">
-              {SOCIAL_PILLS.map(({ icon: Icon, label }) => (
+              {SOCIAL_LINKS.map(({ key, label }) => (
                 <span
-                  key={label}
+                  key={key}
                   className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-gray-300"
                 >
-                  <Icon className="w-3.5 h-3.5 text-amber-400" />
+                  <SocialIcon social={key} className="w-3.5 h-3.5 text-amber-400" />
                   {label}
                 </span>
               ))}
+              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-gray-300">
+                <CustomLinkIcon className="w-3.5 h-3.5 text-amber-400" />
+                Lien perso
+              </span>
             </div>
           </div>
 
