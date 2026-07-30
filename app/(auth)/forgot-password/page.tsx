@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <div className="flex items-center gap-2 mb-6">
           <BookOpen className="w-6 h-6 text-amber-400" />
-          <h1 className="text-xl font-bold">Mot de passe oublié</h1>
+          <h1 className="text-xl font-bold text-white">Mot de passe oublié</h1>
         </div>
 
         {sent ? (

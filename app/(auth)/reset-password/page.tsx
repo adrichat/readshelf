@@ -58,7 +58,7 @@ function ResetPasswordForm() {
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
           <div className="flex items-center gap-2 mb-6">
             <BookOpen className="w-6 h-6 text-amber-400" />
-            <h1 className="text-xl font-bold">Lien invalide</h1>
+            <h1 className="text-xl font-bold text-white">Lien invalide</h1>
           </div>
           <p className="text-sm text-gray-500 mb-6">
             Ce lien de réinitialisation est incomplet ou invalide.
@@ -76,7 +76,7 @@ function ResetPasswordForm() {
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
         <div className="flex items-center gap-2 mb-6">
           <BookOpen className="w-6 h-6 text-amber-400" />
-          <h1 className="text-xl font-bold">Nouveau mot de passe</h1>
+          <h1 className="text-xl font-bold text-white">Nouveau mot de passe</h1>
         </div>
 
         <div className="flex flex-col gap-4">
