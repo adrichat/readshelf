@@ -5,6 +5,8 @@ interface SocialLinkProps {
   appHref?: string | null
   className?: string
   style?: React.CSSProperties
+  title?: string
+  "aria-label"?: string
   children: React.ReactNode
 }
 
@@ -12,7 +14,15 @@ interface SocialLinkProps {
 // sur le lien web si l'app ne réagit pas dans un délai court. Sur desktop,
 // ou quand aucun deep link n'est connu pour ce réseau, comportement de lien
 // classique inchangé.
-export function SocialLink({ href, appHref, className, style, children }: SocialLinkProps) {
+export function SocialLink({
+  href,
+  appHref,
+  className,
+  style,
+  title,
+  "aria-label": ariaLabel,
+  children,
+}: SocialLinkProps) {
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
     if (!appHref) return
 
@@ -54,6 +64,8 @@ export function SocialLink({ href, appHref, className, style, children }: Social
       rel="noopener noreferrer"
       className={className}
       style={style}
+      title={title}
+      aria-label={ariaLabel}
       onClick={handleClick}
     >
       {children}

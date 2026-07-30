@@ -3,11 +3,12 @@ import Link from "next/link"
 import { Playfair_Display, Merriweather, Crimson_Text } from "next/font/google"
 import { db } from "@/lib/db"
 import { accentTextColor, backgroundLuminance, foregroundFor } from "@/lib/profile-colors"
-import { SOCIAL_FIELDS, isValidSocialUrl, isValidCustomLinkUrl, getAppDeepLink } from "@/lib/social-links"
+import { SOCIAL_FIELDS, isValidSocialUrl, isValidCustomLinkUrl, getAppDeepLink, type SocialKey } from "@/lib/social-links"
 import { FavoriteBooks } from "@/components/profile/FavoriteBooks"
 import { ProfileBooks } from "@/components/profile/ProfileBooks"
 import { ProfileEffects } from "@/components/profile/ProfileEffects"
 import { SocialLink } from "@/components/profile/SocialLink"
+import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
 import type { Metadata } from "next"
 
 const playfair = Playfair_Display({ subsets: ["latin"] })
@@ -19,6 +20,11 @@ const FONT_CLASSES: Record<string, string> = {
   merriweather: merriweather.className,
   crimson: crimson.className,
 }
+
+// Réseaux moins reconnaissables au seul logo : on garde le nom à côté de
+// l'icône. Instagram/YouTube/Spotify restent en icône seule (identifiables
+// sans texte).
+const SOCIAL_KEYS_WITH_LABEL = new Set<SocialKey>(["goodreads", "babelio", "booknode"])
 
 interface Props {
   params: Promise<{ username: string }>
@@ -123,9 +129,15 @@ export default async function ProfilePage({ params }: Props) {
   const displayName = user.displayName ?? username
   const socialLinks = (profile?.socialLinks ?? {}) as Record<string, string>
 
+  // Réseaux avec logo + nom groupés avant ceux en icône seule, pour ne pas
+  // les faire alterner dans la rangée.
   const activeSocials = SOCIAL_FIELDS.filter(
     (s) => socialLinks[s.key] && isValidSocialUrl(s.key, socialLinks[s.key])
-  )
+  ).sort((a, b) => {
+    const aLabeled = SOCIAL_KEYS_WITH_LABEL.has(a.key) ? 0 : 1
+    const bLabeled = SOCIAL_KEYS_WITH_LABEL.has(b.key) ? 0 : 1
+    return aLabeled - bLabeled
+  })
   const hasCustomLink =
     !!socialLinks.customLinkUrl &&
     !!socialLinks.customLinkTitle &&
@@ -211,34 +223,46 @@ export default async function ProfilePage({ params }: Props) {
           {/* Liens sociaux */}
           {(activeSocials.length > 0 || hasCustomLink) && (
             <div className="flex items-center gap-3 flex-wrap justify-center mb-5">
-              {activeSocials.map((s) => (
-                <SocialLink
-                  key={s.key}
-                  href={socialLinks[s.key]}
-                  appHref={getAppDeepLink(s.key, socialLinks[s.key])}
-                  className="text-xs px-3 py-1 rounded-full border transition-all hover:scale-105"
-                  style={{
-                    borderColor: `${accentText}40`,
-                    color: accentText,
-                    backgroundColor: `${accentColor}10`,
-                  }}
-                >
-                  {s.label}
-                </SocialLink>
-              ))}
+              {activeSocials.map((s) => {
+                const showLabel = SOCIAL_KEYS_WITH_LABEL.has(s.key)
+                return (
+                  <SocialLink
+                    key={s.key}
+                    href={socialLinks[s.key]}
+                    appHref={getAppDeepLink(s.key, socialLinks[s.key])}
+                    className={
+                      showLabel
+                        ? "flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all hover:scale-105 text-xs font-medium"
+                        : "flex items-center justify-center w-9 h-9 rounded-full border transition-all hover:scale-110"
+                    }
+                    style={{
+                      borderColor: `${accentText}40`,
+                      color: accentText,
+                      backgroundColor: `${accentColor}10`,
+                    }}
+                    title={s.label}
+                    aria-label={s.label}
+                  >
+                    <SocialIcon social={s.key} className="w-4 h-4 shrink-0" />
+                    {showLabel && <span>{s.label}</span>}
+                  </SocialLink>
+                )
+              })}
               {hasCustomLink && (
                 <a
                   href={socialLinks.customLinkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs px-3 py-1 rounded-full border transition-all hover:scale-105"
+                  className="flex items-center justify-center w-9 h-9 rounded-full border transition-all hover:scale-110"
                   style={{
                     borderColor: `${accentText}40`,
                     color: accentText,
                     backgroundColor: `${accentColor}10`,
                   }}
+                  title={socialLinks.customLinkTitle}
+                  aria-label={socialLinks.customLinkTitle}
                 >
-                  {socialLinks.customLinkTitle}
+                  <CustomLinkIcon className="w-4 h-4" />
                 </a>
               )}
             </div>
