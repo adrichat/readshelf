@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { rateLimit, clientIp } from "@/lib/rate-limit"
-
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
+import { isValidUsername } from "@/lib/username-validation"
 
 // Endpoint public non authentifié — limité par IP pour éviter l'énumération
 // de usernames existants et le spam de lookups DB.
@@ -15,9 +14,7 @@ export async function GET(req: NextRequest) {
   }
 
   const username = req.nextUrl.searchParams.get("username")
-  if (!username) return NextResponse.json({ available: false })
-
-  if (RESERVED.includes(username.toLowerCase())) {
+  if (!isValidUsername(username)) {
     return NextResponse.json({ available: false })
   }
 

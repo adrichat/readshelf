@@ -24,6 +24,12 @@ const LOGIN_EMAIL_LIMIT = 10
 const LOGIN_IP_LIMIT = 30
 const LOGIN_WINDOW_MS = 15 * 60_000
 
+// Hash bcrypt d'un mot de passe arbitraire, sans rapport avec un vrai compte —
+// sert uniquement à faire tourner un bcrypt.compare de coût identique quand
+// l'utilisateur n'existe pas, pour que le temps de réponse ne révèle pas si
+// l'email correspond à un compte (timing attack / énumération de comptes).
+const DUMMY_PASSWORD_HASH = "$2b$10$J2tUplNSp3l6NijAAnJYPO3odWLhIz5vh7D9lGFO9.n9HClxEccSe"
+
 // Nombre de jours calendaires (UTC) écoulés entre deux dates
 function daysBetween(from: Date, to: Date): number {
   const MS_PER_DAY = 86_400_000
@@ -56,12 +62,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const user = await db.user.findUnique({ where: { email } })
-        if (!user?.password) {
-          throw new InvalidCredentialsError()
-        }
-
-        const valid = await bcrypt.compare(password, user.password)
-        if (!valid) {
+        // Compare toujours contre un hash (celui du compte, ou le hash factice
+        // si l'email n'existe pas / le compte est OAuth-only) pour que le
+        // temps de réponse soit le même dans les deux cas.
+        const valid = await bcrypt.compare(password, user?.password ?? DUMMY_PASSWORD_HASH)
+        if (!user?.password || !valid) {
           throw new InvalidCredentialsError()
         }
 

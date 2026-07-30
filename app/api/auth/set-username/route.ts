@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
-
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
+import { isValidUsername } from "@/lib/username-validation"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -12,16 +11,8 @@ export async function POST(req: NextRequest) {
 
   const { username } = await req.json()
 
-  if (!username || typeof username !== "string") {
+  if (!isValidUsername(username)) {
     return NextResponse.json({ error: "Invalid username" }, { status: 400 })
-  }
-
-  if (!/^[a-z0-9_-]{3,30}$/.test(username)) {
-    return NextResponse.json({ error: "Invalid format" }, { status: 400 })
-  }
-
-  if (RESERVED.includes(username)) {
-    return NextResponse.json({ error: "Reserved" }, { status: 400 })
   }
 
   const existing = await db.user.findUnique({ where: { username } })

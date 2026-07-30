@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
-import { sendVerificationEmail } from "@/lib/resend"
+import { sendVerificationEmail, sendAccountExistsEmail } from "@/lib/resend"
 import { rateLimit, clientIp } from "@/lib/rate-limit"
 import {
   generateVerificationToken,
   hashVerificationToken,
   VERIFICATION_TOKEN_TTL_MS,
 } from "@/lib/verification-token"
+import { isValidUsername } from "@/lib/username-validation"
 
-const RESERVED = ["api", "login", "register", "dashboard", "admin", "demo", "setup", "forgot-password", "reset-password", "404", "500"]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Une inscription est un événement rare pour un vrai utilisateur — large
@@ -27,11 +27,8 @@ export async function POST(req: NextRequest) {
 
   const { username, email, password } = await req.json()
 
-  if (!username || typeof username !== "string" || !/^[a-z0-9_-]{3,30}$/.test(username)) {
+  if (!isValidUsername(username)) {
     return NextResponse.json({ error: "Nom d'utilisateur invalide." }, { status: 400 })
-  }
-  if (RESERVED.includes(username)) {
-    return NextResponse.json({ error: "Ce nom d'utilisateur est réservé." }, { status: 400 })
   }
   if (!email || typeof email !== "string" || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 })
@@ -51,11 +48,18 @@ export async function POST(req: NextRequest) {
   if (existingUsername) {
     return NextResponse.json({ error: "Ce nom d'utilisateur est déjà pris." }, { status: 409 })
   }
+
   if (existingEmail) {
-    return NextResponse.json(
-      { error: "Un compte existe déjà avec cette adresse email." },
-      { status: 409 }
-    )
+    // Ne révèle pas qu'un compte existe déjà avec cet email (même logique
+    // anti-énumération que forgot-password/resend-verification) : réponse
+    // identique à un succès, on prévient juste le titulaire du compte par
+    // email au lieu de créer un doublon.
+    try {
+      await sendAccountExistsEmail(email)
+    } catch (err) {
+      console.error("Failed to send account-exists email:", err)
+    }
+    return NextResponse.json({ ok: true })
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)

@@ -69,8 +69,14 @@ function RegisterForm() {
       setUsernameCheck("available")
     }
 
-    sessionStorage.setItem("pending_username", username)
     setStep("method")
+  }
+
+  // Transmet le username choisi à /api/auth/setup via cookie (voir ce
+  // fichier côté serveur pour le pourquoi) plutôt que par la query string.
+  function startOAuthSignup(provider: "google" | "discord") {
+    document.cookie = `pending_username=${encodeURIComponent(username)}; path=/; max-age=600; samesite=lax`
+    signIn(provider, { callbackUrl: "/api/auth/setup" })
   }
 
   async function registerWithEmail() {
@@ -165,7 +171,7 @@ function RegisterForm() {
         {step === "method" && (
           <div className="flex flex-col gap-3">
             <Button
-              onClick={() => signIn("google", { callbackUrl: `/api/auth/setup?username=${username}` })}
+              onClick={() => startOAuthSignup("google")}
               variant="outline"
               className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white flex items-center gap-3"
             >
@@ -178,7 +184,7 @@ function RegisterForm() {
               Continuer avec Google
             </Button>
             <Button
-              onClick={() => signIn("discord", { callbackUrl: `/api/auth/setup?username=${username}` })}
+              onClick={() => startOAuthSignup("discord")}
               variant="outline"
               className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white flex items-center gap-3"
             >
