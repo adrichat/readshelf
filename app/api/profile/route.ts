@@ -1,7 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { z } from "zod"
 import { db } from "@/lib/db"
+import { requireAuth } from "@/lib/require-auth"
+import { rateLimit } from "@/lib/rate-limit"
+import { parseJsonBody } from "@/lib/api/parse-body"
 import { isValidHexColor, isValidSolidOrGradientBackground } from "@/lib/color-validation"
+
+// Payloads de fond d'écran en base64 potentiellement volumineux envoyés en
+// boucle par un compte connecté — limité par utilisateur.
+const PATCH_LIMIT = 10
+const PATCH_WINDOW_MS = 60_000
+
+const PatchBodySchema = z.object({
+  backgroundType: z.enum(["COLOR", "GRADIENT", "IMAGE"]).optional(),
+  backgroundValue: z.string().optional(),
+  accentColor: z.string().optional(),
+  fontFamily: z.string().optional(),
+  layoutType: z.enum(["GRID", "SHELF", "MOSAIC", "LIBRARY"]).optional(),
+  effectType: z.enum(["PARTICLES", "AMBIENT_GLOW", "NOISE"]).nullable().optional(),
+  shelfColor: z.string().optional(),
+  seoTitle: z.string().max(60).nullable().optional(),
+  seoDescription: z.string().max(160).nullable().optional(),
+  bio: z.string().max(200).nullable().optional(),
+  displayName: z.string().max(50).nullable().optional(),
+})
 
 // Fond animé : gif uniquement (un autre format perdrait l'intérêt de l'animation)
 // et réservé aux comptes premium, comme le GIF d'avatar dans /api/user/profile
@@ -16,12 +38,15 @@ function isValidBackgroundGif(value: string): boolean {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error: authError } = await requireAuth()
+  if (authError) return authError
+
+  if (!rateLimit(`profile-patch:${session.user.id}`, PATCH_LIMIT, PATCH_WINDOW_MS)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 
-  const body = await req.json()
+  const { data, error } = await parseJsonBody(req, PatchBodySchema)
+  if (error) return error
   const {
     backgroundType,
     backgroundValue,
@@ -34,7 +59,7 @@ export async function PATCH(req: NextRequest) {
     seoDescription,
     bio,
     displayName,
-  } = body
+  } = data
 
   // Les options premium ne passent que si le compte l'est réellement
   const hasPremiumFields =

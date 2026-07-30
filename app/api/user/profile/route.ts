@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { z } from "zod"
 import { db } from "@/lib/db"
+import { requireAuth } from "@/lib/require-auth"
+import { rateLimit } from "@/lib/rate-limit"
+import { parseJsonBody } from "@/lib/api/parse-body"
 import { SOCIAL_FIELDS, isValidSocialUrl, isValidCustomLinkUrl, CUSTOM_LINK_TITLE_MAX } from "@/lib/social-links"
+
+// Payloads d'avatar en base64 potentiellement volumineux envoyés en boucle
+// par un compte connecté — limité par utilisateur.
+const PATCH_LIMIT = 10
+const PATCH_WINDOW_MS = 60_000
+
+const PatchBodySchema = z.object({
+  displayName: z.string().max(50).nullable().optional(),
+  bio: z.string().max(200).nullable().optional(),
+  socialLinks: z.unknown().optional(),
+  image: z.unknown().optional(),
+})
 
 // L'avatar est stocké en data URL directement en base (pas d'hébergement externe).
 // Les images fixes sont recadrées/compressées côté client — la limite serveur
@@ -48,12 +63,16 @@ async function validateImage(image: string, userId: string): Promise<NextRespons
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error: authError } = await requireAuth()
+  if (authError) return authError
+
+  if (!rateLimit(`user-profile-patch:${session.user.id}`, PATCH_LIMIT, PATCH_WINDOW_MS)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 
-  const { displayName, bio, socialLinks, image } = await req.json()
+  const { data, error } = await parseJsonBody(req, PatchBodySchema)
+  if (error) return error
+  const { displayName, bio, socialLinks, image } = data
 
   const CUSTOM_LINK_KEYS = ["customLinkTitle", "customLinkUrl"]
 
@@ -61,15 +80,16 @@ export async function PATCH(req: NextRequest) {
     if (typeof socialLinks !== "object" || socialLinks === null) {
       return NextResponse.json({ error: "INVALID_SOCIAL_LINK" }, { status: 400 })
     }
+    const links = socialLinks as Record<string, unknown>
     for (const field of SOCIAL_FIELDS) {
-      const value = socialLinks[field.key]
+      const value = links[field.key]
       if (value && (typeof value !== "string" || !isValidSocialUrl(field.key, value))) {
         return NextResponse.json({ error: "INVALID_SOCIAL_LINK" }, { status: 400 })
       }
     }
 
-    const customUrl = socialLinks.customLinkUrl
-    const customTitle = socialLinks.customLinkTitle
+    const customUrl = links.customLinkUrl as string | undefined
+    const customTitle = links.customLinkTitle as string | undefined
     if (customUrl && (typeof customUrl !== "string" || !isValidCustomLinkUrl(customUrl))) {
       return NextResponse.json({ error: "INVALID_CUSTOM_LINK" }, { status: 400 })
     }

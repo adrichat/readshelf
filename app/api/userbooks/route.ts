@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { z } from "zod"
 import { db } from "@/lib/db"
+import { requireAuth } from "@/lib/require-auth"
+import { parseJsonBody } from "@/lib/api/parse-body"
 import { getHighResCoverUrl } from "@/lib/books-api"
 
-export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+const VALID_STATUSES = ["READING", "READ", "TO_READ", "ABANDONED"] as const
+const VALID_BOOK_TYPES = ["NOVEL", "MANGA", "COMIC"] as const
 
-  const { book, status, shelfId } = await req.json()
-  if (!book?.title) {
-    return NextResponse.json({ error: "Invalid book data" }, { status: 400 })
-  }
+const PostBodySchema = z.object({
+  book: z.object({
+    title: z.string().min(1),
+    openLibraryId: z.string().nullable().optional(),
+    googleBooksId: z.string().nullable().optional(),
+    isbn: z.string().nullable().optional(),
+    authors: z.array(z.string()).optional(),
+    coverUrl: z.string().nullable().optional(),
+    publishYear: z.number().nullable().optional(),
+    type: z.enum(VALID_BOOK_TYPES).optional(),
+  }),
+  status: z.enum(VALID_STATUSES).optional(),
+  shelfId: z.string().nullable().optional(),
+})
+
+export async function POST(req: NextRequest) {
+  const { session, error: authError } = await requireAuth()
+  if (authError) return authError
+
+  const { data, error } = await parseJsonBody(req, PostBodySchema)
+  if (error) return error
+  const { book, status, shelfId } = data
 
   // Le livre est effectivement ajouté ici (pas juste affiché dans une liste de
   // résultats) : ça vaut le coût d'un appel API dédié pour tenter de récupérer
@@ -74,19 +91,30 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ...userBook, book: savedBook })
 }
 
-const VALID_STATUSES = ["READING", "READ", "TO_READ", "ABANDONED"] as const
-type ValidStatus = (typeof VALID_STATUSES)[number]
+const PatchBodySchema = z.object({
+  userBookId: z.string().min(1),
+  isFavorite: z.boolean().optional(),
+  status: z.enum(VALID_STATUSES).optional(),
+})
+
+const DeleteBodySchema = z.object({
+  userBookId: z.string().min(1),
+})
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const { session, error: authError } = await requireAuth()
+  if (authError) return authError
 
-  const { userBookId, isFavorite, status } = await req.json()
+  const { data, error } = await parseJsonBody(req, PatchBodySchema)
+  if (error) return error
+  const { userBookId, isFavorite, status } = data
 
-  if (status !== undefined && !VALID_STATUSES.includes(status)) {
-    return NextResponse.json({ error: "INVALID_STATUS" }, { status: 400 })
+  const existing = await db.userBook.findUnique({
+    where: { id: userBookId, userId: session.user.id },
+    select: { isFavorite: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
   }
 
   // Si on ajoute un favori (pas juste un re-toggle idempotent), on lui assigne
@@ -96,33 +124,23 @@ export async function PATCH(req: NextRequest) {
   // s'ajouter après les favoris existants.
   let orderUpdate: { order?: number } = {}
 
-  if (isFavorite) {
-    const current = await db.userBook.findUnique({
-      where: { id: userBookId, userId: session.user.id },
-      select: { isFavorite: true },
+  if (isFavorite && !existing.isFavorite) {
+    const agg = await db.userBook.aggregate({
+      where: { userId: session.user.id, isFavorite: true },
+      _count: true,
+      _max: { order: true },
     })
-    if (!current) {
-      return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
+    if (agg._count >= 4) {
+      return NextResponse.json({ error: "MAX_FAVORITES" }, { status: 400 })
     }
-
-    if (!current.isFavorite) {
-      const agg = await db.userBook.aggregate({
-        where: { userId: session.user.id, isFavorite: true },
-        _count: true,
-        _max: { order: true },
-      })
-      if (agg._count >= 4) {
-        return NextResponse.json({ error: "MAX_FAVORITES" }, { status: 400 })
-      }
-      orderUpdate = { order: (agg._max.order ?? -1) + 1 }
-    }
+    orderUpdate = { order: (agg._max.order ?? -1) + 1 }
   }
 
   const updated = await db.userBook.update({
     where: { id: userBookId, userId: session.user.id },
     data: {
       ...(isFavorite !== undefined && { isFavorite }),
-      ...(status !== undefined && { status: status as ValidStatus }),
+      ...(status !== undefined && { status }),
       ...orderUpdate,
     },
     include: { book: true },
@@ -132,12 +150,21 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error: authError } = await requireAuth()
+  if (authError) return authError
+
+  const { data, error } = await parseJsonBody(req, DeleteBodySchema)
+  if (error) return error
+  const { userBookId } = data
+
+  const existing = await db.userBook.findUnique({
+    where: { id: userBookId, userId: session.user.id },
+    select: { id: true },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
   }
 
-  const { userBookId } = await req.json()
   await db.userBook.delete({
     where: { id: userBookId, userId: session.user.id },
   })
