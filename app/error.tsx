@@ -2,8 +2,9 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
-import { BookOpen, RotateCcw } from "lucide-react"
+import { RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/Logo"
 
 export default function Error({
   error,
@@ -19,7 +20,7 @@ export default function Error({
   return (
     <div className="dark min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-4 text-center">
       <div className="flex items-center gap-2 mb-8 text-gray-400">
-        <BookOpen className="w-5 h-5 text-amber-400" />
+        <Logo className="w-[50px] h-[50px] text-amber-400" />
         <span className="font-semibold">ReadShelf</span>
       </div>
       <p className="text-sm font-semibold text-red-400 uppercase tracking-widest mb-3">Erreur</p>

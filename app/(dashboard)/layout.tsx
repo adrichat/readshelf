@@ -1,7 +1,8 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { BookOpen, LogOut, ExternalLink, Sparkles } from "lucide-react"
+import { LogOut, ExternalLink, Sparkles } from "lucide-react"
+import { Logo } from "@/components/Logo"
 import { signOut } from "@/auth"
 import { db } from "@/lib/db"
 import { NAV_ITEMS } from "@/components/dashboard/nav-items"
@@ -47,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Sidebar — desktop uniquement, remplacée par le drawer sur mobile */}
         <aside className="hidden md:flex w-56 border-r border-gray-200 dark:border-white/5 flex-col p-4 shrink-0 overflow-y-auto">
           <div className="flex items-center gap-2 px-2 mb-8">
-            <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <Logo className="w-[50px] h-[50px] text-amber-600 dark:text-amber-400" />
             <span className="font-semibold text-sm">ReadShelf</span>
           </div>
 
@@ -97,7 +98,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             {/* Burger + logo — mobile uniquement */}
             <div className="flex items-center gap-2 md:hidden">
               <MobileNav isPremium={dbUser.isPremium} signOutSlot={signOutForm} />
-              <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <Logo className="w-[50px] h-[50px] text-amber-600 dark:text-amber-400" />
               <span className="font-semibold text-sm">ReadShelf</span>
             </div>
 

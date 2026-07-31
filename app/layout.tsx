@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { Geist, Caprasimo } from "next/font/google"
 import Script from "next/script"
 import { Providers } from "@/components/Providers"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
+// Police display du logo animé (page d'accueil) — voir components/landing/AnimatedLogo.tsx
+const caprasimo = Caprasimo({ weight: "400", subsets: ["latin"], variable: "--font-caprasimo" })
 
 export const metadata: Metadata = {
   title: "ReadShelf — Le Link-in-Bio des lecteurs",
@@ -28,7 +30,7 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${geist.variable} h-full`} suppressHydrationWarning>
+    <html lang="fr" className={`${geist.variable} ${caprasimo.variable} h-full`} suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}

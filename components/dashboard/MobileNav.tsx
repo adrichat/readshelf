@@ -4,7 +4,8 @@ import { useState, useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, BookOpen, Sparkles } from "lucide-react"
+import { Menu, X, Sparkles } from "lucide-react"
+import { Logo } from "@/components/Logo"
 import { NAV_ITEMS } from "./nav-items"
 import { AchievementsBadge } from "./AchievementsBadge"
 import { ThemeToggle } from "./ThemeToggle"
@@ -58,7 +59,7 @@ export function MobileNav({ isPremium, signOutSlot }: Props) {
                 >
                   <div className="flex items-center justify-between px-2 mb-6">
                     <span className="flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <Logo className="w-[50px] h-[50px] text-amber-600 dark:text-amber-400" />
                       <span className="font-semibold text-sm">ReadShelf</span>
                     </span>
                     <button

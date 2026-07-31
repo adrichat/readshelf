@@ -7,6 +7,8 @@ import { motion } from "framer-motion"
 import { BookOpen, Star, Palette, Globe, LayoutDashboard, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Logo } from "@/components/Logo"
+import { AnimatedLogo } from "@/components/landing/AnimatedLogo"
 import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
 import type { SocialKey } from "@/lib/social-links"
 
@@ -184,7 +186,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
       {/* Nav */}
       <nav className="relative flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-amber-400" />
+          <Logo className="w-[50px] h-[50px] text-amber-400" />
           <span className="font-semibold tracking-tight">ReadShelf</span>
         </div>
         <div className="flex items-center gap-3">
@@ -219,6 +221,7 @@ export function LandingContent({ isLoggedIn }: { isLoggedIn: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
+          <AnimatedLogo className="mb-8" />
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
             Le{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500">

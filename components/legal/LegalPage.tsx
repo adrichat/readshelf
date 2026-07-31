@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BookOpen } from "lucide-react"
+import { Logo } from "@/components/Logo"
 
 interface Props {
   title: string
@@ -12,7 +12,7 @@ export function LegalPage({ title, updatedAt, children }: Props) {
     <div className="dark min-h-screen bg-[#101016] text-white">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <Link href="/" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
-          <BookOpen className="w-5 h-5 text-amber-400" />
+          <Logo className="w-[50px] h-[50px] text-amber-400" />
           <span className="font-semibold tracking-tight">ReadShelf</span>
         </Link>
         <div className="flex items-center gap-4 text-xs text-gray-500">
