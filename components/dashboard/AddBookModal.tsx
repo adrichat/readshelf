@@ -15,6 +15,7 @@ interface BookResult {
   publishYear: number | null
   openLibraryId: string | null
   googleBooksId: string | null
+  language: string | null
   type: string
 }
 
@@ -38,38 +39,70 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<BookResult[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<null | "generic" | "rate_limited">(null)
+  const [failedCovers, setFailedCovers] = useState<Set<string>>(new Set())
+  // La recherche étendue (Google + Open Library) est encore en vol : les
+  // résultats rapides (Google seul) sont déjà affichés en attendant.
+  const [pendingFull, setPendingFull] = useState(false)
   const [adding, setAdding] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState("TO_READ")
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
   async function search(q: string) {
-    // Annule la requête précédente encore en vol pour éviter qu'une réponse
+    // Annule les requêtes précédentes encore en vol pour éviter qu'une réponse
     // obsolète n'écrase les résultats d'une recherche plus récente.
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
+    const current = () => abortRef.current === controller
 
     setLoading(true)
-    setError(false)
-    try {
-      const res = await fetch(`/api/books/search?q=${encodeURIComponent(q)}`, {
-        signal: controller.signal,
-      })
-      if (!res.ok) {
-        setResults([])
-        setError(true)
-        return
-      }
-      const data = await res.json()
+    setError(null)
+    setPendingFull(true)
+
+    // Recherche à deux vitesses : la requête rapide (Google seul, <1 s) remplit
+    // la liste immédiatement ; la requête complète (Google + Open Library, plus
+    // lente) la remplace quand elle arrive, comblant les trous de l'index Google.
+    const encoded = encodeURIComponent(q)
+    const quickReq = fetch(`/api/books/search?q=${encoded}`, { signal: controller.signal })
+    const fullReq = fetch(`/api/books/search?q=${encoded}&full=1`, { signal: controller.signal })
+
+    let hasResults = false
+    const applyResults = (data: unknown) => {
       setResults(Array.isArray(data) ? data : [])
+      setFailedCovers(new Set())
+      setLoading(false)
+      hasResults = true
+    }
+
+    try {
+      const res = await quickReq
+      if (current() && res.ok) applyResults(await res.json())
+      // Un échec de la requête rapide n'affiche rien : la complète tranchera.
     } catch (err) {
       if ((err as Error).name === "AbortError") return
-      setResults([])
-      setError(true)
+    }
+
+    try {
+      const res = await fullReq
+      if (!current()) return
+      if (res.ok) {
+        applyResults(await res.json())
+      } else if (!hasResults) {
+        setResults([])
+        setError(res.status === 429 ? "rate_limited" : "generic")
+        setLoading(false)
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return
+      if (!hasResults) {
+        setResults([])
+        setError("generic")
+        setLoading(false)
+      }
     } finally {
-      if (abortRef.current === controller) setLoading(false)
+      if (current()) setPendingFull(false)
     }
   }
 
@@ -80,8 +113,9 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
     if (v.length < MIN_QUERY_LENGTH) {
       abortRef.current?.abort()
       setResults([])
-      setError(false)
+      setError(null)
       setLoading(false)
+      setPendingFull(false)
       return
     }
     timerRef.current = setTimeout(() => search(v), SEARCH_DEBOUNCE_MS)
@@ -92,13 +126,18 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
     abortRef.current?.abort()
     setQuery("")
     setResults([])
-    setError(false)
+    setError(null)
+    setFailedCovers(new Set())
+    setPendingFull(false)
     onClose()
   }
 
   async function handleAdd(book: BookResult) {
     setAdding(book.id)
-    await onAdd(book, selectedStatus)
+    // Ne pas persister une URL de couverture dont le chargement a échoué
+    // (fallback Open Library en 404) : mieux vaut un placeholder qu'une image cassée.
+    const toAdd = failedCovers.has(book.id) ? { ...book, coverUrl: null } : book
+    await onAdd(toAdd, selectedStatus)
     setAdding(null)
     handleClose()
   }
@@ -151,11 +190,16 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
           )}
           {!loading && error && (
             <p className="text-sm text-red-400 text-center py-4">
-              La recherche a échoué. Réessayez dans un instant.
+              {error === "rate_limited"
+                ? "Trop de recherches, patientez un instant."
+                : "La recherche a échoué. Réessayez dans un instant."}
             </p>
           )}
-          {!loading && !error && results.length === 0 && query.length >= MIN_QUERY_LENGTH && (
+          {!loading && !error && results.length === 0 && !pendingFull && query.length >= MIN_QUERY_LENGTH && (
             <p className="text-sm text-gray-500 text-center py-4">Aucun résultat</p>
+          )}
+          {!loading && !error && results.length === 0 && pendingFull && (
+            <p className="text-sm text-gray-500 text-center py-4">Recherche étendue…</p>
           )}
           {results.map((book) => {
             const alreadyAdded = !!(
@@ -169,16 +213,30 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
                 className="flex items-center gap-3 p-3 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
               >
                 <div className="w-10 h-14 rounded shrink-0 bg-gray-200 dark:bg-white/10 overflow-hidden">
-                  {book.coverUrl && (
-                    <Image src={book.coverUrl} alt={book.title} width={40} height={56} className="object-cover w-full h-full" />
+                  {book.coverUrl && !failedCovers.has(book.id) && (
+                    <Image
+                      src={book.coverUrl}
+                      alt={book.title}
+                      width={40}
+                      height={56}
+                      className="object-cover w-full h-full"
+                      onError={() => setFailedCovers((prev) => new Set(prev).add(book.id))}
+                    />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{book.title}</p>
                   <p className="text-xs text-gray-400 truncate">{book.authors.join(", ")}</p>
-                  {book.publishYear && (
-                    <p className="text-xs text-gray-600">{book.publishYear}</p>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {book.publishYear && (
+                      <p className="text-xs text-gray-600">{book.publishYear}</p>
+                    )}
+                    {book.language && (
+                      <span className="text-[10px] uppercase px-1 py-px rounded border border-gray-300 dark:border-white/15 text-gray-500 dark:text-gray-400">
+                        {book.language}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {alreadyAdded ? (
                   <span
@@ -200,6 +258,9 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
               </div>
             )
           })}
+          {!loading && !error && results.length > 0 && pendingFull && (
+            <p className="text-xs text-gray-500 text-center py-2">Recherche étendue en cours…</p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

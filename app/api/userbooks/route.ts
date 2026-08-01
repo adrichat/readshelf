@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { requireAuth } from "@/lib/require-auth"
 import { parseJsonBody } from "@/lib/api/parse-body"
-import { getHighResCoverUrl } from "@/lib/books-api"
+import { findBestCoverUrl } from "@/lib/books-api"
 
 const VALID_STATUSES = ["READING", "READ", "TO_READ", "ABANDONED"] as const
 const VALID_BOOK_TYPES = ["NOVEL", "MANGA", "COMIC"] as const
@@ -32,9 +32,13 @@ export async function POST(req: NextRequest) {
   const { book, status, shelfId } = data
 
   // Le livre est effectivement ajouté ici (pas juste affiché dans une liste de
-  // résultats) : ça vaut le coût d'un appel API dédié pour tenter de récupérer
-  // une couverture en meilleure résolution que celle de la recherche.
-  const hdCoverUrl = book.googleBooksId ? await getHighResCoverUrl(book.googleBooksId) : null
+  // résultats) : ça vaut le coût de quelques requêtes pour récupérer et vérifier
+  // la meilleure couverture disponible (voir findBestCoverUrl pour la cascade).
+  const bestCoverUrl = await findBestCoverUrl({
+    coverUrl: book.coverUrl ?? null,
+    googleBooksId: book.googleBooksId ?? null,
+    isbn: book.isbn ?? null,
+  })
 
   // Déduplication : priorité googleBooksId, puis openLibraryId, sinon création directe
   let savedBook = null
@@ -44,7 +48,7 @@ export async function POST(req: NextRequest) {
     isbn: book.isbn ?? null,
     title: book.title,
     authors: book.authors ?? [],
-    coverUrl: hdCoverUrl ?? book.coverUrl ?? null,
+    coverUrl: bestCoverUrl,
     publishYear: book.publishYear ?? null,
     type: (book.type ?? "NOVEL") as "NOVEL" | "MANGA" | "COMIC",
   }
