@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Caprasimo } from "next/font/google"
 import Script from "next/script"
 import { Providers } from "@/components/Providers"
@@ -12,6 +12,16 @@ const caprasimo = Caprasimo({ weight: "400", subsets: ["latin"], variable: "--fo
 export const metadata: Metadata = {
   title: "ReadShelf — Le Link-in-Bio des lecteurs",
   description: "Bibliothèque, réseaux, tous tes liens : une seule page à glisser dans ta bio. Le Link-in-Bio pensé pour les lecteurs.",
+}
+
+// Pas de zoom pinch/double-tap sur mobile : l'app est déjà responsive et le
+// zoom ne fait que casser la mise en page. Complété par `touch-action` dans
+// globals.css, seul levier respecté par Safari iOS (qui ignore user-scalable).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 // Pose la classe .dark/.light sur <html> avant l'hydratation (le dashboard

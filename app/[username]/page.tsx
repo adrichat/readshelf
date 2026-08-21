@@ -84,7 +84,6 @@ export default async function ProfilePage({ params }: Props) {
         backgroundImage: `url(${bgValue})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundAttachment: "fixed",
       }
     : bgType === "GRADIENT"
       ? { backgroundImage: bgValue }
@@ -144,7 +143,13 @@ export default async function ProfilePage({ params }: Props) {
     isValidCustomLinkUrl(socialLinks.customLinkUrl)
 
   return (
-    <div className={`relative isolate min-h-screen ${fontClass}`} style={backgroundStyle}>
+    <div className={`relative isolate min-h-screen ${fontClass}`}>
+      {/* Le décor vit dans une couche fixe plutôt que sur le conteneur qui
+          défile : background-attachment: fixed est ignoré par Safari iOS, et
+          un dégradé posé sur le conteneur s'étire sur toute la hauteur du
+          document (donc défile). Ici le fond reste calé sur le viewport,
+          immobile au scroll, quel que soit son type. */}
+      <div className="fixed inset-0 -z-20 pointer-events-none" aria-hidden style={backgroundStyle} />
       {hasImageBackground && (
         <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden style={{ backgroundColor: "rgba(0,0,0,0.35)" }} />
       )}

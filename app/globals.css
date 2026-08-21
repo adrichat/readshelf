@@ -77,6 +77,16 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* Zoom pinch/double-tap coupé sur mobile. Le meta viewport (voir
+   app/layout.tsx) suffit sur Android ; Safari iOS ignore user-scalable=no
+   depuis iOS 10 et n'obéit qu'à touch-action. pan-x pan-y laisse le
+   défilement intact, et la propriété n'est pas héritée : un élément qui
+   pose son propre touch-action (drag & drop) garde la main. */
+html,
+body {
+  touch-action: pan-x pan-y;
+}
+
 /* Tailwind v4 ne met plus cursor: pointer sur les boutons — on le rétablit
    pour tous les éléments interactifs non désactivés */
 @layer base {
