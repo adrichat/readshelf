@@ -87,6 +87,24 @@ body {
   touch-action: pan-x pan-y;
 }
 
+/* Couche de décor calée sur le viewport (fond de profil, effets premium).
+   On évite `inset: 0` : le bloc conteneur d'un élément fixe suit la hauteur
+   du viewport de mise en page, qui change quand la barre d'URL de Chrome
+   mobile se rétracte — `background-size: cover` se recalculait alors à
+   chaque scroll, d'où un fond qui se dézoomait puis se rezoomait. Une
+   hauteur figée en lvh (grand viewport, barres masquées) ne bouge jamais ;
+   le bas de la couche passe simplement sous la barre quand elle est là. */
+@layer utilities {
+  .viewport-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    height: 100lvh;
+  }
+}
+
 /* Tailwind v4 ne met plus cursor: pointer sur les boutons — on le rétablit
    pour tous les éléments interactifs non désactivés */
 @layer base {

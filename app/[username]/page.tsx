@@ -149,9 +149,9 @@ export default async function ProfilePage({ params }: Props) {
           un dégradé posé sur le conteneur s'étire sur toute la hauteur du
           document (donc défile). Ici le fond reste calé sur le viewport,
           immobile au scroll, quel que soit son type. */}
-      <div className="fixed inset-0 -z-20 pointer-events-none" aria-hidden style={backgroundStyle} />
+      <div className="viewport-layer -z-20 pointer-events-none" aria-hidden style={backgroundStyle} />
       {hasImageBackground && (
-        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden style={{ backgroundColor: "rgba(0,0,0,0.35)" }} />
+        <div className="viewport-layer -z-10 pointer-events-none" aria-hidden style={{ backgroundColor: "rgba(0,0,0,0.35)" }} />
       )}
       {effect && (
         <ProfileEffects

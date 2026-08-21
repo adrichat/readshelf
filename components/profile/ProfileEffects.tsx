@@ -44,7 +44,7 @@ export function ProfileEffects({ effect, accentColor, seed = 1 }: ProfileEffects
 
   if (effect === "PARTICLES") {
     return (
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden>
+      <div className="viewport-layer -z-10 pointer-events-none overflow-hidden" aria-hidden>
         <style>{`
           @keyframes rs-float {
             0% { transform: translate(0, 105vh); }
@@ -80,7 +80,7 @@ export function ProfileEffects({ effect, accentColor, seed = 1 }: ProfileEffects
 
   if (effect === "AMBIENT_GLOW") {
     return (
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden>
+      <div className="viewport-layer -z-10 pointer-events-none overflow-hidden" aria-hidden>
         <style>{`
           @keyframes rs-glow {
             0%, 100% { transform: translate(-20%, -30%) scale(1); opacity: 0.85; }
@@ -129,7 +129,7 @@ export function ProfileEffects({ effect, accentColor, seed = 1 }: ProfileEffects
   // NOISE — texture grain SVG statique
   return (
     <div
-      className="fixed inset-0 -z-10 pointer-events-none"
+      className="viewport-layer -z-10 pointer-events-none"
       aria-hidden
       style={{
         opacity: 0.14,
