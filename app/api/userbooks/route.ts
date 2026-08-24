@@ -38,6 +38,10 @@ export async function POST(req: NextRequest) {
     coverUrl: book.coverUrl ?? null,
     googleBooksId: book.googleBooksId ?? null,
     isbn: book.isbn ?? null,
+    // Titre + auteur servent au dernier recours : retrouver l'œuvre chez Open
+    // Library quand le volume Google est une fiche de catalogue sans image.
+    title: book.title,
+    authors: book.authors ?? null,
   })
 
   // Déduplication : priorité googleBooksId, puis openLibraryId, sinon création directe
