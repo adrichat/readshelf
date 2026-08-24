@@ -8,6 +8,7 @@ import { CoverViewerProvider } from "@/components/profile/CoverViewer"
 import { FavoriteBooks } from "@/components/profile/FavoriteBooks"
 import { ProfileBooks } from "@/components/profile/ProfileBooks"
 import { ProfileEffects } from "@/components/profile/ProfileEffects"
+import { PromoPopup } from "@/components/profile/PromoPopup"
 import { SocialLink } from "@/components/profile/SocialLink"
 import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
 import type { Metadata } from "next"
@@ -333,6 +334,8 @@ export default async function ProfilePage({ params }: Props) {
           Créé avec ReadShelf ✦
         </Link>
       </footer>
+
+      <PromoPopup accentColor={accentColor} />
     </div>
   )
 }
