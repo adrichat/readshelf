@@ -6,6 +6,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   BOOKS_ADDED: "Bibliothèque",
   BOOKS_READ: "Lecture",
   LOGIN_STREAK: "Fidélité",
+  DECADES_READ: "Époques",
+  SAME_AUTHOR: "Plumes",
 }
 
 export default async function AchievementsPage() {

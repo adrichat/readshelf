@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { BookCard } from "./BookCard"
 import { LibraryShelves } from "./LibraryShelves"
 import { foregroundFor, luminance, readableTextOn, type ProfileFg } from "@/lib/profile-colors"
+import { compareAuthors } from "@/lib/author-name"
 
 const STATUS_LABELS: Record<string, string> = {
   ALL: "Tous",
@@ -63,7 +64,14 @@ export function ProfileBooks({
     const base = filter === "ALL" ? books : books.filter((b) => b.status === filter)
     return [...base].sort((a, b) => {
       if (sort === "title") return a.book.title.localeCompare(b.book.title, "fr", { sensitivity: "base" })
-      if (sort === "author") return (a.book.authors[0] ?? "").localeCompare(b.book.authors[0] ?? "", "fr", { sensitivity: "base" })
+      if (sort === "author") {
+        // Classement sur le nom de famille ; à auteur identique, les livres
+        // se suivent dans l'ordre alphabétique des titres.
+        return (
+          compareAuthors(a.book.authors[0] ?? "", b.book.authors[0] ?? "") ||
+          a.book.title.localeCompare(b.book.title, "fr", { sensitivity: "base" })
+        )
+      }
       return (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
     })
   }, [books, filter, sort])
