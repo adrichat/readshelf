@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { Search, Plus, Check, X } from "lucide-react"
+import { Search, Plus, Check, X, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -27,9 +27,9 @@ interface AddBookModalProps {
 }
 
 const STATUSES = [
-  { value: "TO_READ", label: "À lire" },
-  { value: "READING", label: "En cours" },
-  { value: "READ", label: "Lu" },
+  { value: "TO_READ", label: "À lire", dot: "#9ca3af" },
+  { value: "READING", label: "En cours", dot: "#60a5fa" },
+  { value: "READ", label: "Lu", dot: "#4ade80" },
 ]
 
 const SEARCH_DEBOUNCE_MS = 400
@@ -45,9 +45,18 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
   // résultats rapides (Google seul) sont déjà affichés en attendant.
   const [pendingFull, setPendingFull] = useState(false)
   const [adding, setAdding] = useState<string | null>(null)
-  const [selectedStatus, setSelectedStatus] = useState("TO_READ")
+  const [addError, setAddError] = useState(false)
+  // Aucun statut par défaut : c'est un choix explicite, exigé avant chaque ajout.
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  // Signale visuellement le statut manquant quand on tente d'ajouter sans l'avoir choisi.
+  const [statusMissing, setStatusMissing] = useState(false)
+  // Livres ajoutés pendant cette session de modal : la liste reste ouverte pour
+  // en enchaîner plusieurs, ces id donnent le retour « ajouté » immédiat sans
+  // attendre que le parent ait rafraîchi existingBookIds.
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const statusRef = useRef<HTMLDivElement | null>(null)
 
   async function search(q: string) {
     // Annule les requêtes précédentes encore en vol pour éviter qu'une réponse
@@ -67,6 +76,12 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
     const encoded = encodeURIComponent(q)
     const quickReq = fetch(`/api/books/search?q=${encoded}`, { signal: controller.signal })
     const fullReq = fetch(`/api/books/search?q=${encoded}&full=1`, { signal: controller.signal })
+    // Les deux requêtes partent en parallèle mais ne sont attendues qu'à la
+    // suite. Si la rapide part en AbortError (frappe suivante, fermeture), on
+    // sort avant d'avoir attendu la complète : sans ce gestionnaire, son rejet
+    // remonterait en unhandledRejection. Le `await` plus bas reste inchangé.
+    quickReq.catch(() => {})
+    fullReq.catch(() => {})
 
     let hasResults = false
     const applyResults = (data: unknown) => {
@@ -121,6 +136,10 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
     timerRef.current = setTimeout(() => search(v), SEARCH_DEBOUNCE_MS)
   }
 
+  // Toutes les sorties de la modal passent par ici (bouton Terminé, croix, Échap,
+  // clic sur l'overlay) : c'est le seul endroit où remettre l'état à zéro, pour
+  // que la réouverture reparte vierge — statut compris, qui ne doit jamais être
+  // pré-rempli d'une session à l'autre.
   function handleClose() {
     if (timerRef.current) clearTimeout(timerRef.current)
     abortRef.current?.abort()
@@ -129,17 +148,40 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
     setError(null)
     setFailedCovers(new Set())
     setPendingFull(false)
+    setSelectedStatus(null)
+    setStatusMissing(false)
+    setAddedIds(new Set())
+    setAddError(false)
     onClose()
   }
 
+  function pickStatus(value: string) {
+    setSelectedStatus(value)
+    setStatusMissing(false)
+  }
+
   async function handleAdd(book: BookResult) {
+    // Pas de statut choisi : on bloque l'ajout et on ramène l'œil sur le sélecteur.
+    if (!selectedStatus) {
+      setStatusMissing(true)
+      statusRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+      return
+    }
+
     setAdding(book.id)
+    setAddError(false)
     // Ne pas persister une URL de couverture dont le chargement a échoué
     // (fallback Open Library en 404) : mieux vaut un placeholder qu'une image cassée.
     const toAdd = failedCovers.has(book.id) ? { ...book, coverUrl: null } : book
-    await onAdd(toAdd, selectedStatus)
-    setAdding(null)
-    handleClose()
+    try {
+      await onAdd(toAdd, selectedStatus)
+      setAddedIds((prev) => new Set(prev).add(book.id))
+    } catch {
+      setAddError(true)
+    } finally {
+      setAdding(null)
+    }
+    // La modal reste ouverte : on enchaîne les ajouts sans la rouvrir à chaque fois.
   }
 
   return (
@@ -149,36 +191,72 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
           <DialogTitle>Ajouter un livre</DialogTitle>
         </DialogHeader>
 
-        {/* Status selector */}
-        <div className="flex gap-2 flex-wrap">
-          {STATUSES.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => setSelectedStatus(s.value)}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                selectedStatus === s.value
-                  ? "bg-amber-600 border-amber-500 text-white"
-                  : "border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+        {/* Sélecteur de statut — obligatoire, sans valeur par défaut */}
+        <div
+          ref={statusRef}
+          className={`flex flex-col gap-2 rounded-xl border p-3 transition-colors ${
+            statusMissing
+              ? "border-red-500 bg-red-50 dark:border-red-500/70 dark:bg-red-500/10"
+              : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.03]"
+          }`}
+        >
+          <p
+            className={`text-xs font-medium ${
+              statusMissing ? "text-red-700 dark:text-red-300" : "text-gray-600 dark:text-gray-300"
+            }`}
+          >
+            Statut à appliquer <span className="text-red-600 dark:text-red-400">*</span>
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {STATUSES.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => pickStatus(s.value)}
+                aria-pressed={selectedStatus === s.value}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  selectedStatus === s.value
+                    ? "bg-amber-600 border-amber-600 text-white"
+                    : statusMissing
+                      ? "border-red-400 dark:border-red-500/60 text-red-700 dark:text-red-300 hover:border-red-500"
+                      : "border-gray-300 dark:border-white/15 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/30"
+                }`}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedStatus === s.value ? "#ffffff" : s.dot }}
+                />
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <p
+            className={`text-xs ${
+              statusMissing ? "text-red-700 dark:text-red-300 font-medium" : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            {statusMissing
+              ? "Choisis d'abord un statut pour pouvoir ajouter ce livre."
+              : "Appliqué aux livres que tu ajoutes ci-dessous. Modifiable à tout moment."}
+          </p>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
           <Input
             value={query}
             onChange={(e) => handleQuery(e.target.value)}
             placeholder="Titre, auteur, ISBN…"
-            className="pl-9 bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600"
+            className="pl-9 bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500"
             autoFocus
           />
           {query && (
-            <button onClick={() => { setQuery(""); setResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-gray-500" />
+            <button
+              onClick={() => { setQuery(""); setResults([]) }}
+              aria-label="Effacer la recherche"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
           )}
         </div>
@@ -186,27 +264,29 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
         {/* Results */}
         <div className="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1">
           {loading && (
-            <p className="text-sm text-gray-500 text-center py-4">Recherche…</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">Recherche…</p>
           )}
           {!loading && error && (
-            <p className="text-sm text-red-400 text-center py-4">
+            <p className="text-sm text-red-600 dark:text-red-400 text-center py-4">
               {error === "rate_limited"
                 ? "Trop de recherches, patientez un instant."
                 : "La recherche a échoué. Réessayez dans un instant."}
             </p>
           )}
           {!loading && !error && results.length === 0 && !pendingFull && query.length >= MIN_QUERY_LENGTH && (
-            <p className="text-sm text-gray-500 text-center py-4">Aucun résultat</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">Aucun résultat</p>
           )}
           {!loading && !error && results.length === 0 && pendingFull && (
-            <p className="text-sm text-gray-500 text-center py-4">Recherche étendue…</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-4">Recherche étendue…</p>
           )}
           {results.map((book) => {
-            const alreadyAdded = !!(
-              existingBookIds &&
-              ((book.googleBooksId && existingBookIds.has(book.googleBooksId)) ||
-                (book.openLibraryId && existingBookIds.has(book.openLibraryId)))
-            )
+            const alreadyAdded =
+              addedIds.has(book.id) ||
+              !!(
+                existingBookIds &&
+                ((book.googleBooksId && existingBookIds.has(book.googleBooksId)) ||
+                  (book.openLibraryId && existingBookIds.has(book.openLibraryId)))
+              )
             return (
               <div
                 key={book.id}
@@ -225,14 +305,14 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{book.title}</p>
-                  <p className="text-xs text-gray-400 truncate">{book.authors.join(", ")}</p>
+                  <p className="text-sm font-medium truncate text-gray-900 dark:text-white">{book.title}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{book.authors.join(", ")}</p>
                   <div className="flex items-center gap-1.5">
                     {book.publishYear && (
-                      <p className="text-xs text-gray-600">{book.publishYear}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">{book.publishYear}</p>
                     )}
                     {book.language && (
-                      <span className="text-[10px] uppercase px-1 py-px rounded border border-gray-300 dark:border-white/15 text-gray-500 dark:text-gray-400">
+                      <span className="text-[10px] uppercase px-1 py-px rounded border border-gray-300 dark:border-white/15 text-gray-600 dark:text-gray-400">
                         {book.language}
                       </span>
                     )}
@@ -241,7 +321,7 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
                 {alreadyAdded ? (
                   <span
                     title="Déjà dans ta bibliothèque"
-                    className="shrink-0 flex items-center gap-1 text-xs text-emerald-400 px-2.5 py-1.5"
+                    className="shrink-0 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5"
                   >
                     <Check className="w-4 h-4" />
                   </span>
@@ -250,17 +330,43 @@ export function AddBookModal({ open, onClose, onAdd, existingBookIds }: AddBookM
                     size="sm"
                     onClick={() => handleAdd(book)}
                     disabled={adding === book.id}
-                    className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+                    aria-label={`Ajouter ${book.title}`}
+                    className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-60"
                   >
-                    <Plus className="w-4 h-4" />
+                    {adding === book.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Plus className="w-4 h-4" />
+                    )}
                   </Button>
                 )}
               </div>
             )
           })}
           {!loading && !error && results.length > 0 && pendingFull && (
-            <p className="text-xs text-gray-500 text-center py-2">Recherche étendue en cours…</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 text-center py-2">Recherche étendue en cours…</p>
           )}
+        </div>
+
+        {/* Pied : compteur de session + sortie explicite */}
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            {addError ? (
+              <span className="text-red-600 dark:text-red-400">L&apos;ajout a échoué. Réessaye.</span>
+            ) : addedIds.size > 0 ? (
+              `${addedIds.size} livre${addedIds.size > 1 ? "s" : ""} ajouté${addedIds.size > 1 ? "s" : ""}`
+            ) : (
+              "Tu peux en ajouter plusieurs d'affilée."
+            )}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClose}
+            className="border-gray-300 dark:border-white/15 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10"
+          >
+            Terminé
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

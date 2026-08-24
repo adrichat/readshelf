@@ -55,7 +55,7 @@ export default async function DashboardPage() {
               <p className="text-sm font-medium">Ma bibliothèque</p>
               <p className="text-xs text-gray-500">Gérer mes livres</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-600 self-end" />
+            <ArrowRight className="w-4 h-4 text-gray-500 dark:text-gray-400 self-end" />
           </div>
         </Link>
         <Link href="/dashboard/appearance">
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
               <p className="text-sm font-medium">Apparence</p>
               <p className="text-xs text-gray-500">Personnaliser mon profil</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-600 self-end" />
+            <ArrowRight className="w-4 h-4 text-gray-500 dark:text-gray-400 self-end" />
           </div>
         </Link>
         <Link href={`/${session!.user!.username}`} target="_blank">
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
               <p className="text-sm font-medium">Mon profil public</p>
               <p className="text-xs text-gray-500">Voir ma page</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-600 self-end" />
+            <ArrowRight className="w-4 h-4 text-gray-500 dark:text-gray-400 self-end" />
           </div>
         </Link>
       </div>

@@ -132,6 +132,9 @@ export default function LibraryPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ book, status }),
     })
+    // La modal reste ouverte et affiche l'erreur : sans ce throw, une réponse
+    // d'erreur serait insérée telle quelle dans la liste des livres.
+    if (!res.ok) throw new Error("add_failed")
     const newBook = await res.json()
     // Remplace l'entrée existante si le livre était déjà dans la bibliothèque
     // (le serveur met simplement à jour son statut, il ne crée pas de doublon)
@@ -245,7 +248,7 @@ export default function LibraryPage() {
       <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Ma bibliothèque</h1>
-          <p className="text-sm text-gray-500">{books.length} livre{books.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{books.length} livre{books.length !== 1 ? "s" : ""}</p>
         </div>
         <Button
           onClick={() => setModalOpen(true)}
@@ -274,9 +277,9 @@ export default function LibraryPage() {
             <div className="flex items-center gap-2">
               <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
               <span className="text-xs font-semibold">Livres préférés</span>
-              <span className="text-xs text-gray-600">{favorites.length}/4</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{favorites.length}/4</span>
             </div>
-            <p className="text-xs text-gray-600 hidden sm:block">
+            <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
               {dragId
                 ? "Dépose ici pour l'ajouter aux favoris"
                 : "Glisse un livre ici · affichés en premier sur ton profil"}
@@ -284,7 +287,7 @@ export default function LibraryPage() {
           </div>
 
           {favError && (
-            <p className="text-xs text-red-400 mb-2">{favError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mb-2">{favError}</p>
           )}
 
           <div className="flex flex-wrap gap-4">
@@ -312,7 +315,7 @@ export default function LibraryPage() {
                 >
                   <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                     {fav.book.coverUrl ? (
-                      <Image src={fav.book.coverUrl} alt={fav.book.title} fill className="object-cover" sizes="160px" draggable={false} />
+                      <Image src={fav.book.coverUrl} alt={fav.book.title} fill className="object-cover" sizes="160px" priority draggable={false} />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-2xl">📖</div>
                     )}
@@ -341,7 +344,7 @@ export default function LibraryPage() {
                     dragId ? "border-amber-500/60" : "border-gray-300 dark:border-white/10 hover:border-amber-500/40"
                   }`}
                 >
-                  <Plus className="w-5 h-5 text-gray-400 dark:text-gray-700" />
+                  <Plus className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 </button>
               )
             })}
@@ -392,9 +395,9 @@ export default function LibraryPage() {
       </div>
 
           {loading ? (
-            <div className="text-gray-500 text-sm">Chargement…</div>
+            <div className="text-gray-600 dark:text-gray-400 text-sm">Chargement…</div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 text-gray-600">
+            <div className="text-center py-20 text-gray-600 dark:text-gray-400">
               <p className="text-4xl mb-3">📚</p>
               <p>Ta bibliothèque est vide.</p>
               <Button onClick={() => setModalOpen(true)} className="mt-4 bg-amber-600 hover:bg-amber-700 text-white">
@@ -433,7 +436,7 @@ export default function LibraryPage() {
                       >
                         <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                           {ub.book.coverUrl ? (
-                            <Image src={ub.book.coverUrl} alt={ub.book.title} fill className="object-cover" sizes="160px" draggable={false} />
+                            <Image src={ub.book.coverUrl} alt={ub.book.title} fill className="object-cover" sizes="160px" priority={i < 6} draggable={false} />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center text-2xl">📖</div>
                           )}
@@ -480,7 +483,7 @@ export default function LibraryPage() {
                         {ub.rating && (
                           <div className="flex gap-0.5">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={`w-3 h-3 ${i < (ub.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-700"}`} />
+                              <Star key={i} className={`w-3 h-3 ${i < (ub.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300 dark:text-gray-600"}`} />
                             ))}
                           </div>
                         )}
@@ -523,7 +526,7 @@ export default function LibraryPage() {
 
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{ub.book.title}</p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                             {ub.book.authors[0] ?? "Auteur inconnu"}
                           </p>
                         </div>
@@ -539,14 +542,14 @@ export default function LibraryPage() {
                         <div className="flex items-center shrink-0">
                           <button
                             onClick={() => handleFavorite(ub)}
-                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                             title={ub.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                           >
                             <Heart className={`w-3.5 h-3.5 ${ub.isFavorite ? "text-rose-400 fill-rose-400" : ""}`} />
                           </button>
                           <button
                             onClick={() => handleDelete(ub.id)}
-                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                            className="p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                             title="Supprimer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

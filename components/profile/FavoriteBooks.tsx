@@ -59,6 +59,7 @@ export function FavoriteBooks({
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 25vw, (max-width: 1024px) 15vw, 200px"
+                      priority
                     />
                   ) : (
                     <div

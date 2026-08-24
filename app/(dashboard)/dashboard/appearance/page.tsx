@@ -391,7 +391,7 @@ export default function AppearancePage() {
                 onChange={handleGifFile}
                 className="hidden"
               />
-              {gifError && <p className="text-xs text-red-400">{gifError}</p>}
+              {gifError && <p className="text-xs text-red-600 dark:text-red-400">{gifError}</p>}
               <p className="text-xs text-gray-500 dark:text-gray-600">GIF uniquement, 4 Mo maximum — l&apos;animation est conservée telle quelle.</p>
             </div>
           )}

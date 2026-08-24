@@ -101,7 +101,7 @@ export default async function PremiumPage({ searchParams }: Props) {
             <PremiumBuyButton />
           </div>
 
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
             Paiement sécurisé par Stripe. Carte de test : 4242 4242 4242 4242.
           </p>
         </div>
