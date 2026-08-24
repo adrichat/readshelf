@@ -84,12 +84,14 @@ const TRAVEL = 0.8
 // En deçà, le geste est un tap (fermeture) et non une rotation
 const TAP_SLOP_PX = 8
 
-const OPEN_MS = 460
-const CLOSE_MS = 340
+const OPEN_MS = 520
+const CLOSE_MS = 380
 /** Retour à plat au relâchement du doigt */
 const REST_MS = 500
-// Léger dépassement à l'ouverture, franc et sans rebond à la fermeture
-const OPEN_EASE = "cubic-bezier(.34, 1.4, .64, 1)"
+// Départ progressif : une courbe à fort dépassement (ease-out-back) consomme
+// tout le trajet dans les 150 premières millisecondes, et l'agrandissement
+// ne se voit tout simplement pas — la couverture semble apparaître au centre.
+const OPEN_EASE = "cubic-bezier(.4, 0, .2, 1)"
 const CLOSE_EASE = "cubic-bezier(.4, 0, .2, 1)"
 const BACKDROP_BLUR = "blur(12px)"
 /** Opacité du voile holo une fois la couverture ouverte */
@@ -210,10 +212,14 @@ function CoverOverlay({
   useLayoutEffect(() => {
     const wrap = wrapRef.current
     if (!wrap) return
-    finalRect.current = wrap.getBoundingClientRect()
+    // Mesuré une seule fois, hors de toute animation : si l'effet est rejoué
+    // (StrictMode), remesurer donnerait le rectangle déjà déplacé sur la
+    // vignette, donc une animation identité — qui écrase la vraie.
+    if (!finalRect.current) finalRect.current = wrap.getBoundingClientRect()
     const from = transformOnto(origin, finalRect.current)
 
     setChrome(false)
+    flightRef.current?.cancel()
     flightRef.current = wrap.animate(
       [
         { transform: from ?? "scale(.86)", opacity: from ? 1 : 0 },
