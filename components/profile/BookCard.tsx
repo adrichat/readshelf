@@ -72,6 +72,9 @@ export function BookCard({
               fill
               className="object-cover"
               sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 160px"
+              // Les premières couvertures sont au-dessus de la ligne de flottaison :
+              // sans priority, Next les charge en lazy et signale un LCP tardif.
+              priority={index < 6}
             />
           ) : (
             <div

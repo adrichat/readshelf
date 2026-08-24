@@ -8,6 +8,8 @@ import {
   findBestCoverUrl,
   mapOpenLibraryDoc,
   combineSources,
+  cleanEditionTitle,
+  volumeNumber,
 } from "@/lib/books-api"
 import type { BookSearchResult } from "@/lib/books-api"
 
@@ -298,6 +300,42 @@ describe("combineSources", () => {
   })
 })
 
+describe("cleanEditionTitle", () => {
+  it("drops volume and edition segments, and dedupes the repeated title", () => {
+    expect(cleanEditionTitle("Red Rising - Livre 1 - Red Rising - Edition Limitee")).toBe("Red Rising")
+  })
+
+  it("drops a collection segment", () => {
+    expect(cleanEditionTitle("DES FLEURS POUR ALGERNON - COLLECTION J'AI LU")).toBe("DES FLEURS POUR ALGERNON")
+  })
+
+  it("keeps the distinctive segments of a series volume", () => {
+    expect(cleanEditionTitle("Red Rising - Livre 5 - Dark Age - partie 1")).toBe("Red Rising Dark Age")
+  })
+
+  it("leaves a plain title untouched", () => {
+    expect(cleanEditionTitle("Golden Son")).toBe("Golden Son")
+  })
+
+  it("falls back to the original title when every segment is noise", () => {
+    expect(cleanEditionTitle("Tome 3 - Édition originale")).toBe("Tome 3 - Édition originale")
+  })
+})
+
+describe("volumeNumber", () => {
+  it("reads tome, livre and T-prefixed markers", () => {
+    expect(volumeNumber("Dororo - Édition Prestige T01")).toBe(1)
+    expect(volumeNumber("Space Brothers T44")).toBe(44)
+    expect(volumeNumber("Red Rising - Livre 5 - Dark Age")).toBe(5)
+    expect(volumeNumber("One Piece - Tome 01")).toBe(1)
+  })
+
+  it("returns null when the title carries no volume marker", () => {
+    expect(volumeNumber("Golden Son")).toBeNull()
+    expect(volumeNumber("1984")).toBeNull()
+  })
+})
+
 describe("findBestCoverUrl", () => {
   const GOOGLE_THUMB = "https://books.google.com/books/content?id=x&printsec=frontcover&img=1&zoom=1"
 
@@ -321,8 +359,17 @@ describe("findBestCoverUrl", () => {
     vi.stubGlobal("fetch", fetchMock)
 
     const url = await findBestCoverUrl({ coverUrl: GOOGLE_THUMB, googleBooksId: "x", isbn: "9781234567897" })
-    expect(url).toBe(`${GOOGLE_THUMB}&fife=w800`)
+    expect(url).toBe(`${GOOGLE_THUMB}&fife=w1200`)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("strips edge=curl so the stored cover is not the curled search thumbnail", async () => {
+    const fetchMock = vi.fn(async (_url: string) => imageResponse("image/jpeg"))
+    vi.stubGlobal("fetch", fetchMock)
+
+    const curled = `${GOOGLE_THUMB}&edge=curl&source=gbs_api`
+    const url = await findBestCoverUrl({ coverUrl: curled, googleBooksId: "x", isbn: null })
+    expect(url).toBe(`${GOOGLE_THUMB}&source=gbs_api&fife=w1200`)
   })
 
   it("falls back to the volume's HD links when fife serves the PNG placeholder", async () => {
@@ -335,12 +382,60 @@ describe("findBestCoverUrl", () => {
           json: async () => ({ volumeInfo: { imageLinks: { large: "http://books.google.com/large" } } }),
         }
       }
+      if (url === "https://books.google.com/large") return imageResponse("image/jpeg")
       throw new Error(`unexpected fetch: ${url}`)
     })
     vi.stubGlobal("fetch", fetchMock)
 
     const url = await findBestCoverUrl({ coverUrl: GOOGLE_THUMB, googleBooksId: "x", isbn: null })
     expect(url).toBe("https://books.google.com/large")
+  })
+
+  it("rejects an HD link that only serves the PNG placeholder", async () => {
+    // Google publie parfois large/extraLarge pour un volume qui n'a en réalité
+    // aucune jaquette : le lien répond 200 avec le PNG « image not available ».
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("googleapis.com/books/v1/volumes/x")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ volumeInfo: { imageLinks: { large: "http://books.google.com/large" } } }),
+        }
+      }
+      if (url.includes("covers.openlibrary.org")) return { ok: false, status: 404 }
+      return imageResponse("image/png")
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const url = await findBestCoverUrl({ coverUrl: null, googleBooksId: "x", isbn: "9781234567897" })
+    expect(url).toBeNull()
+  })
+
+  it("falls back to the Open Library work cover found by title and author", async () => {
+    // Volume Google réduit à une fiche de catalogue : aucune imageLinks, et
+    // Open Library ne connaît pas cet ISBN précis.
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("openlibrary.org/search.json")) {
+        expect(url).toContain("title=Red+Rising")
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ docs: [{ title: "Red Rising", author_name: ["Pierce Brown"], cover_i: 7316188 }] }),
+        }
+      }
+      if (url.includes("covers.openlibrary.org")) return { ok: false, status: 404 }
+      return { ok: true, status: 200, json: async () => ({}) }
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const url = await findBestCoverUrl({
+      coverUrl: null,
+      googleBooksId: "x",
+      isbn: "9782013918220",
+      title: "Red Rising - Livre 1 - Red Rising - Edition Limitee",
+      authors: ["Pierce Brown"],
+    })
+    expect(url).toBe("https://covers.openlibrary.org/b/id/7316188-L.jpg")
   })
 
   it("falls back to a verified Open Library cover when Google has nothing", async () => {
@@ -364,6 +459,51 @@ describe("findBestCoverUrl", () => {
 
     const url = await findBestCoverUrl({ coverUrl: GOOGLE_THUMB, googleBooksId: "x", isbn: "9781234567897" })
     expect(url).toBe(GOOGLE_THUMB)
+  })
+
+  it("refuses the work cover for a volume past the first", async () => {
+    // La couverture au niveau de l'œuvre serait celle d'un autre tome.
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("openlibrary.org/search.json")) throw new Error("ne doit pas être appelé")
+      if (url.includes("covers.openlibrary.org")) return { ok: false, status: 404 }
+      return { ok: true, status: 200, json: async () => ({}) }
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const url = await findBestCoverUrl({
+      coverUrl: null,
+      googleBooksId: "x",
+      isbn: "9781234567897",
+      title: "Red Rising - Livre 5 - Dark Age - partie 1",
+      authors: ["Pierce Brown"],
+    })
+    expect(url).toBeNull()
+  })
+
+  it("refuses a work cover whose title or author does not match exactly", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("openlibrary.org/search.json")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            docs: [{ title: "Red Rising", author_name: ["Renee Joiner"], cover_i: 14651895 }],
+          }),
+        }
+      }
+      if (url.includes("covers.openlibrary.org")) return { ok: false, status: 404 }
+      return { ok: true, status: 200, json: async () => ({}) }
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const url = await findBestCoverUrl({
+      coverUrl: null,
+      googleBooksId: "x",
+      isbn: "9781234567897",
+      title: "Red Rising",
+      authors: ["Pierce Brown"],
+    })
+    expect(url).toBeNull()
   })
 
   it("never returns an unverified Open Library URL", async () => {

@@ -319,6 +319,25 @@ export async function searchBooks(
   return final
 }
 
+// Largeur demandée à Google pour la couverture stockée. La vignette de recherche
+// fait 128 px de large : elle suffit pour la liste de résultats, pas pour les
+// grilles de la bibliothèque et du profil sur écran haute densité.
+const GOOGLE_COVER_WIDTH = 1200
+
+// Transforme une vignette Google en jaquette pleine résolution :
+//  - `edge=curl` fait dessiner par Google un faux « coin de page corné » par-dessus
+//    la couverture. C'est la signature visuelle des vignettes de recherche : gardé
+//    sur l'image agrandie, il donne au livre stocké exactement le même aspect
+//    « basse définition » que dans la liste de résultats. On le retire.
+//  - `fife=wN` redimensionne depuis l'image source en plafonnant à la résolution
+//    réellement disponible, et ne renvoie jamais le placeholder que servent les
+//    niveaux de zoom absents (contrairement à zoom=2/3/4). Gratuit en quota :
+//    ce n'est pas un appel API.
+export function googleCoverUrl(url: string, width = GOOGLE_COVER_WIDTH): string {
+  const flat = url.replace(/([?&])edge=curl&?/g, "$1").replace(/[?&]fife=[^&]*/g, "").replace(/[?&]$/, "")
+  return `${flat}&fife=w${width}`
+}
+
 // Vérifie qu'une URL d'image Google répond par une vraie jaquette : les placeholders
 // "image not available" sont systématiquement servis en image/png, les vraies
 // couvertures en image/jpeg. On lit uniquement les en-têtes, pas le corps.
@@ -341,22 +360,24 @@ export async function findBestCoverUrl(book: {
   coverUrl?: string | null
   googleBooksId?: string | null
   isbn?: string | null
+  title?: string | null
+  authors?: string[] | null
 }): Promise<string | null> {
-  const { coverUrl, googleBooksId, isbn } = book
+  const { coverUrl, googleBooksId, isbn, title, authors } = book
 
-  // 1. Agrandissement fife sur la vignette Google : fife=wN redimensionne depuis
-  //    l'image source en plafonnant à la résolution réellement disponible, et ne
-  //    renvoie jamais le placeholder que servent les niveaux de zoom absents
-  //    (contrairement à zoom=2/3/4). Gratuit en quota : ce n'est pas un appel API.
+  // 1. Agrandissement fife de la vignette Google, sans l'effet « page cornée »
+  //    (voir googleCoverUrl).
   if (coverUrl?.includes("books.google.com/books/")) {
-    const fifeUrl = `${coverUrl}&fife=w800`
+    const fifeUrl = googleCoverUrl(coverUrl)
     if (await isRealGoogleImage(fifeUrl)) return fifeUrl
   }
 
-  // 2. Liens HD du détail du volume (large/medium/small), réels quand présents.
+  // 2. Liens HD du détail du volume (extraLarge…small). Google les publie parfois
+  //    alors qu'ils ne servent que le placeholder PNG « image not available » :
+  //    on les valide comme en 1 avant de les stocker.
   if (googleBooksId) {
     const hd = await getHighResCoverUrl(googleBooksId)
-    if (hd) return hd
+    if (hd && (await isRealGoogleImage(hd))) return hd
   }
 
   // 2bis. Couverture Open Library par id (résultat de la recherche Open Library) :
@@ -386,7 +407,93 @@ export async function findBestCoverUrl(book: {
   if (coverUrl && !coverUrl.startsWith("https://covers.openlibrary.org/")) {
     return coverUrl
   }
+
+  // 5. Dernier recours : la même œuvre chez Open Library, retrouvée par titre +
+  //    auteur. Beaucoup de volumes Google sont de simples fiches de catalogue,
+  //    sans aucune imageLinks, et Open Library ne connaît pas leur ISBN précis
+  //    alors qu'elle référence l'œuvre avec une couverture.
+  if (title && authors?.length) {
+    return findCoverByTitleAuthor(title, authors[0])
+  }
   return null
+}
+
+// ---------------------------------------------------------------------------
+// Recherche de couverture par titre + auteur (étape 5 de findBestCoverUrl)
+// ---------------------------------------------------------------------------
+
+// Segments d'un titre d'édition qui n'identifient pas l'œuvre chez Open Library
+// (« Livre 1 », « Édition originale », « Collection J'ai Lu »…).
+const TITLE_NOISE_SEGMENTS = [
+  /^(tome|livre|vol|volume|partie|part|t|n)\s*\.?\s*\d+/,
+  /^\d+$/,
+  /^(edition|editions|collection|coll)\b/,
+  /^(integrale|poche|broche|relie|manga|bd)$/,
+]
+
+const VOLUME_MARKER = /\b(?:tome|livre|vol|volume|t)\s*\.?\s*(\d{1,3})\b/
+
+// « Red Rising - Livre 1 - Red Rising - Edition Limitee » → « Red Rising ».
+// Les segments sont dédupliqués : les éditeurs répètent souvent le titre.
+export function cleanEditionTitle(title: string): string {
+  const segments = title.split(/\s+[-–—:]\s+/).map((s) => s.trim()).filter(Boolean)
+  const kept: string[] = []
+  for (const segment of segments) {
+    const normalized = normalizeForMatch(segment)
+    if (TITLE_NOISE_SEGMENTS.some((re) => re.test(normalized))) continue
+    if (kept.some((k) => normalizeForMatch(k) === normalized)) continue
+    kept.push(segment)
+  }
+  return kept.join(" ") || title
+}
+
+// Numéro de tome porté par le titre, s'il y en a un.
+export function volumeNumber(title: string): number | null {
+  const match = normalizeForMatch(title).match(VOLUME_MARKER)
+  return match ? parseInt(match[1], 10) : null
+}
+
+// Couverture de l'œuvre chez Open Library. Volontairement très strict : égalité
+// exacte du titre nettoyé ET de l'auteur, et refus des tomes au-delà du premier
+// (la couverture au niveau de l'œuvre serait celle d'un autre tome). Mieux vaut
+// le placeholder « 📖 » qu'une jaquette qui n'est pas celle du livre.
+export async function findCoverByTitleAuthor(title: string, author?: string | null): Promise<string | null> {
+  if (!author) return null
+  const volume = volumeNumber(title)
+  if (volume !== null && volume !== 1) return null
+
+  const cleaned = cleanEditionTitle(title)
+  const params = new URLSearchParams({
+    title: cleaned,
+    author,
+    limit: "5",
+    fields: "title,author_name,cover_i",
+  })
+
+  try {
+    const res = await fetch(`https://openlibrary.org/search.json?${params}`, {
+      signal: AbortSignal.timeout(6000),
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) {
+      console.error(`[books-api] Open Library a répondu ${res.status} pour la couverture de "${cleaned}"`)
+      return null
+    }
+    const data = await res.json()
+    const docs = (data.docs ?? []) as { title?: string; author_name?: string[]; cover_i?: number }[]
+    const wantedTitle = normalizeForMatch(cleaned)
+    const wantedAuthor = normalizeForMatch(author)
+    const match = docs.find(
+      (doc) =>
+        doc.cover_i &&
+        normalizeForMatch(doc.title ?? "") === wantedTitle &&
+        (doc.author_name ?? []).some((a) => normalizeForMatch(a) === wantedAuthor)
+    )
+    return match ? `https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg` : null
+  } catch (err) {
+    console.error("[books-api] échec de la recherche de couverture par titre/auteur:", err)
+    return null
+  }
 }
 
 // Vérifie qu'Open Library possède réellement une couverture pour cet ISBN :
@@ -421,8 +528,11 @@ export async function getHighResCoverUrl(googleBooksId: string): Promise<string 
     }
     const data = await res.json()
     const imageLinks = data?.volumeInfo?.imageLinks as Record<string, string> | undefined
-    const best = imageLinks?.large ?? imageLinks?.medium ?? imageLinks?.small
-    return best ? best.replace("http://", "https://") : null
+    // extraLarge/large d'abord : ces liens portent aussi edge=curl, qu'on retire
+    // pour la même raison qu'en étape 1 de findBestCoverUrl.
+    const best = imageLinks?.extraLarge ?? imageLinks?.large ?? imageLinks?.medium ?? imageLinks?.small
+    if (!best) return null
+    return best.replace("http://", "https://").replace(/([?&])edge=curl&?/g, "$1").replace(/[?&]$/, "")
   } catch (err) {
     console.error(`[books-api] échec de récupération de la couverture HD (${googleBooksId}):`, err)
     return null

@@ -267,7 +267,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
                   </button>
                 )}
               </div>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 JPG, PNG ou WebP — recadrée en carré.
                 {isPremium && <span className="text-amber-600 dark:text-amber-400"> GIF animé accepté ✦</span>}
               </p>
@@ -334,14 +334,14 @@ export function SettingsForm({ isPremium, initialData }: Props) {
             maxLength={200}
             className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 resize-none"
           />
-          <p className="text-xs text-gray-600 mt-1 text-right">{bio.length}/200</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right">{bio.length}/200</p>
         </div>
       </div>
 
       {/* Liens sociaux */}
       <div className="flex flex-col gap-4">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-white/8 pb-2">Liens sociaux</h2>
-        <p className="text-xs text-gray-600 -mt-2">Ces liens s&apos;affichent sur ta page publique.</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 -mt-2">Ces liens s&apos;affichent sur ta page publique.</p>
 
         {SOCIAL_FIELDS.map((field) => (
           <div key={field.key}>
@@ -382,7 +382,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
             maxLength={CUSTOM_LINK_TITLE_MAX}
             className="bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 text-sm"
           />
-          <p className="text-xs text-gray-600 mt-1 text-right">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right">
             {customLinkTitle.length}/{CUSTOM_LINK_TITLE_MAX}
           </p>
         </div>
@@ -419,7 +419,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
             </span>
           )}
         </h2>
-        <p className="text-xs text-gray-600 -mt-2">
+        <p className="text-xs text-gray-600 dark:text-gray-400 -mt-2">
           Personnalise le titre et la description de ta page dans les résultats de recherche.
         </p>
 
@@ -458,7 +458,7 @@ export function SettingsForm({ isPremium, initialData }: Props) {
         )}
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <Button
         onClick={save}
