@@ -140,6 +140,21 @@ body {
   border-radius: 3px;
 }
 
+/* Position du reflet — déclarée en @property pour être *animable* : sans
+   type déclaré, une variable CSS saute d'une valeur à l'autre et le voile
+   holographique se replacerait d'un coup au relâchement, alors que la
+   carte, elle, se redresse en douceur. */
+@property --px {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+@property --py {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
 /* Bascule 3D au survol — suivi continu de la souris (piloté en JS, voir
    Hover3D.tsx qui pousse --rx/--ry/--px/--py à chaque mousemove, pixel par
    pixel, sans passer par des zones de survol discrètes). --tilt-speed vaut
@@ -156,7 +171,12 @@ body {
     --py: 50%;
     --tilt-speed: .4s;
     filter: drop-shadow(calc(var(--ry) * -0.4px) calc(var(--rx) * 0.4px) 14px rgba(0, 0, 0, 0.35));
-    transition: filter var(--tilt-speed) ease-out;
+    /* --px/--py transitionnent avec l'inclinaison : reflet et voile holo
+       reviennent au centre exactement en même temps que la carte */
+    transition:
+      filter var(--tilt-speed) ease-out,
+      --px var(--tilt-speed) ease-out,
+      --py var(--tilt-speed) ease-out;
 
     & > :first-child {
       position: relative;
@@ -216,17 +236,13 @@ body {
     opacity: 0.6;
   }
 
-  /* Aperçu tactile plein écran (CoverViewer.tsx) : au doigt il n'y a pas de
-     survol, le reflet et le voile holographique restent donc allumés tant
-     que la couverture est ouverte — c'est le pouce qui la fait pivoter. */
-  .hover-3d.tilt-active > :first-child::before {
-    opacity: 1;
-  }
-
-  .holo.tilt-active > :first-child::after {
-    opacity: 0.6;
-  }
 }
+
+/* L'aperçu tactile plein écran (CoverViewer.tsx) ne se sert pas de ces
+   pseudo-éléments : au doigt il n'y a pas de survol pour les allumer, et
+   leur opacité doit suivre l'agrandissement au millième près. Il repose
+   donc ses propres calques (mêmes dégradés), pilotés en JS — mais il
+   réutilise --px/--py, d'où leur déclaration en @property plus haut. */
 
 .legal-content h2 {
   font-size: 1.125rem;

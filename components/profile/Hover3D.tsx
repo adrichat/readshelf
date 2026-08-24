@@ -62,7 +62,13 @@ export function Hover3D({ children, holo = false, className = "", cover }: Hover
   }
 
   const open = () => {
-    if (cover && openCover) openCover({ ...cover, holo })
+    if (!cover || !openCover) return
+    // ref.current sert de point de départ de l'agrandissement : l'aperçu part
+    // de cette vignette et y revient à la fermeture. currentSrc est la variante
+    // exacte déjà téléchargée ici : l'aperçu s'en sert le temps de charger la
+    // sienne, plutôt que de voler à vide.
+    const img = ref.current?.querySelector("img")
+    openCover({ ...cover, holo, previewSrc: img?.currentSrc || img?.src || null }, ref.current)
   }
 
   return (
