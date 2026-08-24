@@ -215,6 +215,17 @@ body {
   .holo:hover > :first-child::after {
     opacity: 0.6;
   }
+
+  /* Aperçu tactile plein écran (CoverViewer.tsx) : au doigt il n'y a pas de
+     survol, le reflet et le voile holographique restent donc allumés tant
+     que la couverture est ouverte — c'est le pouce qui la fait pivoter. */
+  .hover-3d.tilt-active > :first-child::before {
+    opacity: 1;
+  }
+
+  .holo.tilt-active > :first-child::after {
+    opacity: 0.6;
+  }
 }
 
 .legal-content h2 {

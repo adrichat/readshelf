@@ -3,22 +3,8 @@
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { foregroundFor, type ProfileFg } from "@/lib/profile-colors"
+import { STATUS_CONFIG, STATUS_COLORS_ON_LIGHT } from "@/lib/book-status"
 import { Hover3D } from "./Hover3D"
-
-export const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  READING:   { label: "En cours",   color: "#60a5fa" },
-  READ:      { label: "Lu",         color: "#4ade80" },
-  TO_READ:   { label: "À lire",     color: "#9ca3af" },
-  ABANDONED: { label: "Abandonné",  color: "#f87171" },
-}
-
-// Variantes plus soutenues, lisibles sur fond de profil clair
-const STATUS_COLORS_ON_LIGHT: Record<string, string> = {
-  READING:   "#1d4ed8",
-  READ:      "#15803d",
-  TO_READ:   "#475569",
-  ABANDONED: "#b91c1c",
-}
 
 interface BookCardProps {
   title: string
@@ -63,7 +49,7 @@ export function BookCard({
       transition={{ delay: index * 0.04, duration: 0.35, ease: "easeOut" }}
       className="flex flex-col gap-2"
     >
-      <Hover3D>
+      <Hover3D cover={{ title, authors, coverUrl, status }}>
         <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-white/5 border border-white/10 shadow-md cursor-pointer">
           {coverUrl ? (
             <Image

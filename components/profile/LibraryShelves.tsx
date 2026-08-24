@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { STATUS_CONFIG } from "./BookCard"
+import { STATUS_CONFIG } from "@/lib/book-status"
 import { Hover3D } from "./Hover3D"
 import { useMediaQuery } from "@/lib/use-media-query"
 
@@ -98,7 +98,14 @@ export function LibraryShelves({ books, shelfColor = "#7a4518", accentColor = "#
                   className="relative cursor-pointer"
                   style={{ width: coverWidth, flexShrink: 0 }}
                 >
-                  <Hover3D>
+                  <Hover3D
+                    cover={{
+                      title: book.title,
+                      authors: book.authors,
+                      coverUrl: book.coverUrl,
+                      status: book.status,
+                    }}
+                  >
                     <div
                       className="relative overflow-hidden"
                       style={{

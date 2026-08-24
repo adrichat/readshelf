@@ -4,6 +4,7 @@ import { Playfair_Display, Merriweather, Crimson_Text } from "next/font/google"
 import { db } from "@/lib/db"
 import { accentTextColor, backgroundLuminance, foregroundFor } from "@/lib/profile-colors"
 import { SOCIAL_FIELDS, isValidSocialUrl, isValidCustomLinkUrl, getAppDeepLink, type SocialKey } from "@/lib/social-links"
+import { CoverViewerProvider } from "@/components/profile/CoverViewer"
 import { FavoriteBooks } from "@/components/profile/FavoriteBooks"
 import { ProfileBooks } from "@/components/profile/ProfileBooks"
 import { ProfileEffects } from "@/components/profile/ProfileEffects"
@@ -165,30 +166,30 @@ export default async function ProfilePage({ params }: Props) {
 
       {/* Hero header avec dégradé en couleur d'accent */}
       <div
-        className="relative overflow-hidden pt-10 pb-6 sm:pt-16 sm:pb-12"
+        className="relative overflow-hidden pt-12 pb-9 sm:pt-20 sm:pb-16"
         style={{
           background: `linear-gradient(180deg, ${accentColor}22 0%, ${accentColor}08 60%, transparent 100%)`,
         }}
       >
         {/* Blob décoratif */}
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-3xl pointer-events-none"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[760px] h-[380px] rounded-full blur-3xl pointer-events-none"
           style={{ backgroundColor: `${accentColor}12` }}
         />
 
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
           {/* Avatar */}
           {user.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.image}
               alt={displayName}
-              className="w-24 h-24 rounded-full mb-5 object-cover"
+              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full mb-6 object-cover"
               style={{ boxShadow: `0 0 0 3px ${accentText}60, 0 8px 24px ${accentColor}30` }}
             />
           ) : (
             <div
-              className="w-24 h-24 rounded-full mb-5 flex items-center justify-center text-3xl font-bold"
+              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full mb-6 flex items-center justify-center text-4xl sm:text-5xl font-bold"
               style={{
                 background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}10)`,
                 boxShadow: `0 0 0 2px ${accentText}40`,
@@ -200,8 +201,8 @@ export default async function ProfilePage({ params }: Props) {
           )}
 
           {/* Nom */}
-          <h1 className="text-3xl font-bold mb-1" style={{ color: fg.heading }}>{displayName}</h1>
-          <p className="text-sm mb-3" style={{ color: `${accentText}99` }}>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-1.5" style={{ color: fg.heading }}>{displayName}</h1>
+          <p className="text-base sm:text-lg mb-4" style={{ color: `${accentText}99` }}>
             @{username}
           </p>
 
@@ -209,7 +210,7 @@ export default async function ProfilePage({ params }: Props) {
           {user.isPremium && (
             <Link
               href="/dashboard/premium"
-              className="text-xs px-3 py-1 rounded-full mb-4 inline-block hover:opacity-75 transition-opacity"
+              className="text-sm px-4 py-1.5 rounded-full mb-5 inline-block hover:opacity-75 transition-opacity"
               style={{
                 backgroundColor: `${accentColor}18`,
                 color: accentText,
@@ -222,12 +223,12 @@ export default async function ProfilePage({ params }: Props) {
 
           {/* Bio */}
           {user.bio && (
-            <p className="text-sm max-w-md leading-relaxed mb-4" style={{ color: fg.body }}>{user.bio}</p>
+            <p className="text-base sm:text-lg max-w-xl leading-relaxed mb-6" style={{ color: fg.body }}>{user.bio}</p>
           )}
 
           {/* Liens sociaux */}
           {(activeSocials.length > 0 || hasCustomLink) && (
-            <div className="flex items-center gap-3 flex-wrap justify-center mb-5">
+            <div className="flex items-center gap-3 sm:gap-3.5 flex-wrap justify-center mb-7">
               {activeSocials.map((s) => {
                 const showLabel = SOCIAL_KEYS_WITH_LABEL.has(s.key)
                 return (
@@ -237,8 +238,8 @@ export default async function ProfilePage({ params }: Props) {
                     appHref={getAppDeepLink(s.key, socialLinks[s.key])}
                     className={
                       showLabel
-                        ? "flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all hover:scale-105 text-xs font-medium"
-                        : "flex items-center justify-center w-9 h-9 rounded-full border transition-all hover:scale-110"
+                        ? "flex items-center gap-2 h-11 sm:h-12 px-4 sm:px-5 rounded-full border transition-all hover:scale-105 text-sm font-medium"
+                        : "flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full border transition-all hover:scale-110"
                     }
                     style={{
                       borderColor: `${accentText}40`,
@@ -248,7 +249,7 @@ export default async function ProfilePage({ params }: Props) {
                     title={s.label}
                     aria-label={s.label}
                   >
-                    <SocialIcon social={s.key} className="w-4 h-4 shrink-0" />
+                    <SocialIcon social={s.key} className="w-5 h-5 sm:w-[22px] sm:h-[22px] shrink-0" />
                     {showLabel && <span>{s.label}</span>}
                   </SocialLink>
                 )
@@ -258,7 +259,7 @@ export default async function ProfilePage({ params }: Props) {
                   href={socialLinks.customLinkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-9 h-9 rounded-full border transition-all hover:scale-110"
+                  className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full border transition-all hover:scale-110"
                   style={{
                     borderColor: `${accentText}40`,
                     color: accentText,
@@ -267,7 +268,7 @@ export default async function ProfilePage({ params }: Props) {
                   title={socialLinks.customLinkTitle}
                   aria-label={socialLinks.customLinkTitle}
                 >
-                  <CustomLinkIcon className="w-4 h-4" />
+                  <CustomLinkIcon className="w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                 </a>
               )}
             </div>
@@ -275,27 +276,27 @@ export default async function ProfilePage({ params }: Props) {
 
           {/* Stats */}
           {totalBooks > 0 && (
-            <div className="flex items-center gap-8">
+            <div className="flex items-center justify-center flex-wrap gap-x-10 gap-y-5 sm:gap-x-16">
               <div className="text-center">
-                <span className="block text-2xl font-bold" style={{ color: fg.heading }}>{totalBooks}</span>
-                <span className="text-xs" style={{ color: fg.muted }}>📚 livre{totalBooks !== 1 ? "s" : ""}</span>
+                <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{totalBooks}</span>
+                <span className="text-sm" style={{ color: fg.muted }}>📚 livre{totalBooks !== 1 ? "s" : ""}</span>
               </div>
               {readingCount > 0 && (
                 <div className="text-center">
-                  <span className="block text-2xl font-bold" style={{ color: fg.heading }}>{readingCount}</span>
-                  <span className="text-xs" style={{ color: fg.muted }}>📖 en cours</span>
+                  <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{readingCount}</span>
+                  <span className="text-sm" style={{ color: fg.muted }}>📖 en cours</span>
                 </div>
               )}
               {readCount > 0 && (
                 <div className="text-center">
-                  <span className="block text-2xl font-bold" style={{ color: fg.heading }}>{readCount}</span>
-                  <span className="text-xs" style={{ color: fg.muted }}>✅ lu{readCount !== 1 ? "s" : ""}</span>
+                  <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{readCount}</span>
+                  <span className="text-sm" style={{ color: fg.muted }}>✅ lu{readCount !== 1 ? "s" : ""}</span>
                 </div>
               )}
               {profile && profile.profileViews > 0 && (
                 <div className="text-center">
-                  <span className="block text-2xl font-bold" style={{ color: fg.heading }}>{profile.profileViews}</span>
-                  <span className="text-xs" style={{ color: fg.muted }}>👁️ vue{profile.profileViews !== 1 ? "s" : ""}</span>
+                  <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{profile.profileViews}</span>
+                  <span className="text-sm" style={{ color: fg.muted }}>👁️ vue{profile.profileViews !== 1 ? "s" : ""}</span>
                 </div>
               )}
             </div>
@@ -305,18 +306,22 @@ export default async function ProfilePage({ params }: Props) {
 
       {/* Bibliothèque */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-10">
-        {/* Livres favoris Letterboxd-style */}
-        <FavoriteBooks books={favoriteBooks} accentColor={accentColor} accentText={accentText} fg={fg} />
+        {/* Le survol n'existe pas au doigt : sous CoverViewerProvider, taper
+            une couverture l'ouvre en grand, ou le pouce la fait pivoter */}
+        <CoverViewerProvider accentColor={accentColor}>
+          {/* Livres favoris Letterboxd-style */}
+          <FavoriteBooks books={favoriteBooks} accentColor={accentColor} accentText={accentText} fg={fg} />
 
-        {allBooks.length > 0 ? (
-          <ProfileBooks books={allBooks} accentColor={accentColor} layout={layout} shelfColor={shelfColor} fg={fg} />
-        ) : totalBooks === 0 ? (
-          <div className="text-center py-28">
-            <div className="text-6xl mb-5">📚</div>
-            <p className="text-lg" style={{ color: fg.muted }}>Cette bibliothèque est encore vide.</p>
-            <p className="text-sm mt-2" style={{ color: fg.faint }}>Reviens plus tard !</p>
-          </div>
-        ) : null}
+          {allBooks.length > 0 ? (
+            <ProfileBooks books={allBooks} accentColor={accentColor} layout={layout} shelfColor={shelfColor} fg={fg} />
+          ) : totalBooks === 0 ? (
+            <div className="text-center py-28">
+              <div className="text-6xl mb-5">📚</div>
+              <p className="text-lg" style={{ color: fg.muted }}>Cette bibliothèque est encore vide.</p>
+              <p className="text-sm mt-2" style={{ color: fg.faint }}>Reviens plus tard !</p>
+            </div>
+          ) : null}
+        </CoverViewerProvider>
       </div>
 
       <footer className="pb-10 text-center">

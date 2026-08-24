@@ -47,7 +47,10 @@ export function FavoriteBooks({
         {slots.map((book, i) =>
           book ? (
             <div key={book.id} className="flex flex-col gap-2">
-              <Hover3D holo>
+              <Hover3D
+                holo
+                cover={{ title: book.title, authors: book.authors, coverUrl: book.coverUrl }}
+              >
                 <div
                   className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-lg"
                   style={{ boxShadow: `0 4px 24px ${accentColor}20` }}

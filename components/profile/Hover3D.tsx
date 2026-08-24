@@ -1,6 +1,8 @@
 "use client"
 
 import { useRef, type ReactNode } from "react"
+import { useMediaQuery } from "@/lib/use-media-query"
+import { useCoverViewer, type CoverPreview } from "./CoverViewer"
 
 interface Hover3DProps {
   /** Élément unique : la couverture (ou boîte de couverture) à incliner */
@@ -8,6 +10,11 @@ interface Hover3DProps {
   /** Ajoute le voile holographique (réservé aux livres préférés) */
   holo?: boolean
   className?: string
+  /**
+   * Livre décrit pour l'aperçu plein écran tactile. Sans lui (ou hors
+   * CoverViewerProvider), la couverture reste un simple visuel au survol.
+   */
+  cover?: Omit<CoverPreview, "holo">
 }
 
 const MAX_TILT_DEG = 14
@@ -18,9 +25,15 @@ const MAX_TILT_DEG = 14
  * variables CSS --rx/--ry (inclinaison) et --px/--py (position du reflet)
  * sur l'élément, sans passer par le re-rendu React. Voir app/globals.css
  * (.hover-3d / .holo).
+ *
+ * Au doigt il n'y a pas de survol : sur écran tactile, un tap ouvre la
+ * couverture en grand (CoverViewer) où c'est le pouce qui l'incline.
  */
-export function Hover3D({ children, holo = false, className = "" }: Hover3DProps) {
+export function Hover3D({ children, holo = false, className = "", cover }: Hover3DProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const openCover = useCoverViewer()
+  const isTouch = useMediaQuery("(hover: none)")
+  const tappable = isTouch && !!cover && !!openCover
 
   const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current
@@ -48,12 +61,30 @@ export function Hover3D({ children, holo = false, className = "" }: Hover3DProps
     el.style.setProperty("--py", "50%")
   }
 
+  const open = () => {
+    if (cover && openCover) openCover({ ...cover, holo })
+  }
+
   return (
     <div
       ref={ref}
       className={`hover-3d ${holo ? "holo" : ""} ${className}`}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
+      {...(tappable
+        ? {
+            role: "button",
+            tabIndex: 0,
+            "aria-label": `Agrandir la couverture de ${cover!.title}`,
+            onClick: open,
+            onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                open()
+              }
+            },
+          }
+        : {})}
     >
       {children}
     </div>
