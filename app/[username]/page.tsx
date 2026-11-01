@@ -15,16 +15,16 @@ import { SocialLink } from "@/components/profile/SocialLink"
 import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
 import type { Metadata } from "next"
 
-// `preload: false` : ces trois polices sont mutuellement exclusives (une seule
-// est appliquée, selon le choix premium du profil). Préchargées, elles
-// ajoutaient sept fichiers de police à chaque profil pour n'en utiliser qu'un.
-// Sans préchargement, le navigateur ne va chercher que celle réellement
-// référencée par la classe appliquée.
-// Playfair Display est une police variable : ne pas lui imposer de `weight`
-// (Next.js sert alors toute la plage).
-const playfair = Playfair_Display({ subsets: ["latin"], preload: false })
-const merriweather = Merriweather({ subsets: ["latin"], weight: ["300", "400", "700"], preload: false })
-const crimson = Crimson_Text({ subsets: ["latin"], weight: ["400", "600", "700"], preload: false })
+// Playfair Display et Merriweather sont des polices variables (voir `axes`
+// dans next/dist/compiled/@next/font/dist/google/font-data.json) : leur
+// imposer une liste de `weight` fait échouer Turbopack sur un cache de build
+// vide (« next/font/google queries have exactly one entry »), ce qui ne se voit
+// pas en local où la police est déjà en cache. Sans `weight`, Next sert toute
+// la plage, donc les graisses utilisées restent disponibles.
+// Crimson Text, elle, n'est pas variable : ses poids explicites sont requis.
+const playfair = Playfair_Display({ subsets: ["latin"] })
+const merriweather = Merriweather({ subsets: ["latin"] })
+const crimson = Crimson_Text({ subsets: ["latin"], weight: ["400", "600", "700"] })
 
 const FONT_CLASSES: Record<string, string> = {
   playfair: playfair.className,
