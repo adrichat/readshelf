@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ available: false })
   }
 
-  const existing = await db.user.findUnique({ where: { username } })
+  // select explicite : sans lui, ce simple test de disponibilité — appelé à
+  // chaque frappe — remontait toute la ligne User, avatar base64 compris.
+  const existing = await db.user.findUnique({ where: { username }, select: { id: true } })
   return NextResponse.json({ available: !existing })
 }

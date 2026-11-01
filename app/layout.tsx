@@ -7,7 +7,9 @@ import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 // Police display du logo animé (page d'accueil) — voir components/landing/AnimatedLogo.tsx
-const caprasimo = Caprasimo({ weight: "400", subsets: ["latin"], variable: "--font-caprasimo" })
+// `preload: false` : elle ne sert que sur l'accueil, mais était préchargée sur
+// toutes les pages du site (dashboard et profils compris).
+const caprasimo = Caprasimo({ weight: "400", subsets: ["latin"], variable: "--font-caprasimo", preload: false })
 
 export const metadata: Metadata = {
   title: "ReadShelf — Le Link-in-Bio des lecteurs",

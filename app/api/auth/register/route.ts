@@ -41,8 +41,8 @@ export async function POST(req: NextRequest) {
   }
 
   const [existingUsername, existingEmail] = await Promise.all([
-    db.user.findUnique({ where: { username } }),
-    db.user.findUnique({ where: { email } }),
+    db.user.findUnique({ where: { username }, select: { id: true } }),
+    db.user.findUnique({ where: { email }, select: { id: true } }),
   ])
 
   if (existingUsername) {

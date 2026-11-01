@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
 
   if (ipAllowed && typeof email === "string" && email) {
     const emailAllowed = rateLimit(`resend-verification:email:${email.toLowerCase()}`, RESEND_EMAIL_LIMIT, RESEND_WINDOW_MS)
-    const user = emailAllowed ? await db.user.findUnique({ where: { email } }) : null
+    const user = emailAllowed
+      ? await db.user.findUnique({ where: { email }, select: { password: true, emailVerified: true } })
+      : null
 
     if (user?.password && !user.emailVerified) {
       await db.verificationToken.deleteMany({ where: { identifier: email } })

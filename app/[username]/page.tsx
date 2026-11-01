@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
+import { after } from "next/server"
 import Link from "next/link"
 import { Playfair_Display, Merriweather, Crimson_Text } from "next/font/google"
 import { db } from "@/lib/db"
+import { getProfileHeader, getProfileBooks } from "@/lib/profile-page-data"
 import { accentTextColor, backgroundLuminance, foregroundFor } from "@/lib/profile-colors"
 import { SOCIAL_FIELDS, isValidSocialUrl, isValidCustomLinkUrl, getAppDeepLink, type SocialKey } from "@/lib/social-links"
 import { CoverViewerProvider } from "@/components/profile/CoverViewer"
@@ -13,9 +15,16 @@ import { SocialLink } from "@/components/profile/SocialLink"
 import { SocialIcon, CustomLinkIcon } from "@/components/profile/SocialIcon"
 import type { Metadata } from "next"
 
-const playfair = Playfair_Display({ subsets: ["latin"] })
-const merriweather = Merriweather({ subsets: ["latin"], weight: ["300", "400", "700"] })
-const crimson = Crimson_Text({ subsets: ["latin"], weight: ["400", "600", "700"] })
+// `preload: false` : ces trois polices sont mutuellement exclusives (une seule
+// est appliquée, selon le choix premium du profil). Préchargées, elles
+// ajoutaient sept fichiers de police à chaque profil pour n'en utiliser qu'un.
+// Sans préchargement, le navigateur ne va chercher que celle réellement
+// référencée par la classe appliquée.
+// Playfair Display est une police variable : ne pas lui imposer de `weight`
+// (Next.js sert alors toute la plage).
+const playfair = Playfair_Display({ subsets: ["latin"], preload: false })
+const merriweather = Merriweather({ subsets: ["latin"], weight: ["300", "400", "700"], preload: false })
+const crimson = Crimson_Text({ subsets: ["latin"], weight: ["400", "600", "700"], preload: false })
 
 const FONT_CLASSES: Record<string, string> = {
   playfair: playfair.className,
@@ -34,56 +43,57 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
-  const user = await db.user.findUnique({
-    where: { username },
-    include: { profile: true },
-  })
+  // Même appel (mémoïsé) que la page : une seule requête pour les deux, et
+  // qui ne lit plus ni l'avatar ni le fond base64.
+  const user = await getProfileHeader(username)
   if (!user) return {}
 
   return {
-    title: user.profile?.seoTitle ?? `${user.displayName ?? username} — ReadShelf`,
-    description: user.profile?.seoDescription ?? user.bio ?? `La bibliothèque de ${user.displayName ?? username}`,
+    title: user.seoTitle ?? `${user.displayName ?? username} — ReadShelf`,
+    description: user.seoDescription ?? user.bio ?? `La bibliothèque de ${user.displayName ?? username}`,
   }
 }
 
 export default async function ProfilePage({ params }: Props) {
   const { username } = await params
 
-  const user = await db.user.findUnique({
-    where: { username },
-    include: {
-      profile: true,
-      userBooks: {
-        include: { book: true },
-        orderBy: { order: "asc" },
-      },
-    },
-  })
+  // Les deux requêtes partent ensemble (la liste des livres joint sur le
+  // username, elle n'a donc pas besoin d'attendre l'id de l'en-tête).
+  const [user, userBooks] = await Promise.all([
+    getProfileHeader(username),
+    getProfileBooks(username),
+  ])
 
   if (!user) notFound()
 
-  db.profile
-    .update({ where: { userId: user.id }, data: { profileViews: { increment: 1 } } })
-    .catch(() => {})
+  // Compteur de vues : `after()` le fait tourner une fois la réponse envoyée,
+  // au lieu de laisser une promesse flottante se battre pour une connexion du
+  // pool pendant le rendu (et risquer d'être tuée avec le lambda).
+  after(async () => {
+    await db.profile
+      .update({ where: { userId: user.id }, data: { profileViews: { increment: 1 } } })
+      .catch(() => {})
+  })
 
-  const profile = user.profile
-  const bgType = profile?.backgroundType ?? "COLOR"
-  const bgValue = profile?.backgroundValue ?? "#0a0a0a"
-  const accentColor = profile?.accentColor ?? "#d97706"
+  const bgType = user.backgroundType ?? "COLOR"
+  const accentColor = user.accentColor ?? "#d97706"
 
   // Options premium — appliquées uniquement si le compte l'est
   // (les anciennes valeurs SHELF/MOSAIC retombent sur la grille)
   const layout: "GRID" | "LIBRARY" =
-    user.isPremium && profile?.layoutType === "LIBRARY" ? "LIBRARY" : "GRID"
-  const shelfColor = profile?.shelfColor ?? "#7a4518"
-  const fontClass = user.isPremium ? FONT_CLASSES[profile?.fontFamily ?? ""] ?? "" : ""
-  const effect = user.isPremium ? profile?.effectType ?? null : null
+    user.isPremium && user.layoutType === "LIBRARY" ? "LIBRARY" : "GRID"
+  const shelfColor = user.shelfColor ?? "#7a4518"
+  const fontClass = user.isPremium ? FONT_CLASSES[user.fontFamily ?? ""] ?? "" : ""
+  const effect = user.isPremium ? user.effectType ?? null : null
 
   // Le fond gif est premium — un compte redevenu gratuit retombe sur la couleur
   const hasImageBackground = bgType === "IMAGE" && user.isPremium
+  // Pour un fond image, `backgroundValue` n'est volontairement pas remonté
+  // (plusieurs Mo de base64) : on pointe vers la route média, cacheable.
+  const bgValue = user.backgroundValue ?? "#0a0a0a"
   const backgroundStyle = hasImageBackground
     ? {
-        backgroundImage: `url(${bgValue})`,
+        backgroundImage: `url(/api/media/background/${encodeURIComponent(username)}?v=${user.profileVersion ?? 0})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }
@@ -93,42 +103,48 @@ export default async function ProfilePage({ params }: Props) {
 
   // Couleurs de texte dérivées du fond pour rester lisibles sur fond clair
   // comme sombre ; l'accent retombe sur la couleur de titre s'il se fond dans le décor
-  const bgLum = backgroundLuminance(bgValue)
+  // (un fond image est assombri par la couche ci-dessous : on le traite comme sombre)
+  const bgLum = hasImageBackground ? 0 : backgroundLuminance(bgValue)
   const fg = foregroundFor(bgLum)
   const accentText = accentTextColor(accentColor, bgLum, fg)
 
   // Livres favoris (max 4)
-  const favoriteBooks = user.userBooks
+  const favoriteBooks = userBooks
     .filter((ub) => ub.isFavorite)
     .slice(0, 4)
     .map((ub) => ({
-      id: ub.book.id,
-      title: ub.book.title,
-      authors: ub.book.authors,
-      coverUrl: ub.book.coverUrl,
+      id: ub.bookId,
+      title: ub.title,
+      authors: ub.authors,
+      coverUrl: ub.coverUrl,
     }))
 
   // Les favoris ont déjà leur section dédiée plus haut : on les exclut d'ici
   // pour ne pas les afficher deux fois sur le profil
-  const allBooks = user.userBooks
+  const allBooks = userBooks
     .filter((ub) => !ub.isFavorite)
     .map((ub) => ({
       id: ub.id,
       status: ub.status,
       rating: ub.rating,
       book: {
-        title: ub.book.title,
-        authors: ub.book.authors,
-        coverUrl: ub.book.coverUrl,
-        type: ub.book.type as string,
+        title: ub.title,
+        authors: ub.authors,
+        coverUrl: ub.coverUrl,
+        type: ub.type,
       },
     }))
 
-  const totalBooks = user.userBooks.length
-  const readingCount = user.userBooks.filter((b) => b.status === "READING").length
-  const readCount = user.userBooks.filter((b) => b.status === "READ").length
+  const totalBooks = userBooks.length
+  const readingCount = userBooks.filter((b) => b.status === "READING").length
+  const readCount = userBooks.filter((b) => b.status === "READ").length
   const displayName = user.displayName ?? username
-  const socialLinks = (profile?.socialLinks ?? {}) as Record<string, string>
+  // Avatar OAuth = URL distante, servie telle quelle ; avatar uploadé =
+  // data URL en base, servie par la route média versionnée.
+  const avatarUrl =
+    user.remoteImageUrl ??
+    (user.hasImage ? `/api/media/avatar/${encodeURIComponent(username)}?v=${user.userVersion}` : null)
+  const socialLinks = (user.socialLinks ?? {}) as Record<string, string>
 
   // Réseaux avec logo + nom groupés avant ceux en icône seule, pour ne pas
   // les faire alterner dans la rangée.
@@ -161,7 +177,7 @@ export default async function ProfilePage({ params }: Props) {
           accentColor={accentColor}
           // profileViews s'incrémente à chaque visite : nouvelle répartition
           // de particules à chaque chargement, sans impureté au rendu
-          seed={profile?.profileViews ?? 0}
+          seed={user.profileViews ?? 0}
         />
       )}
 
@@ -180,11 +196,17 @@ export default async function ProfilePage({ params }: Props) {
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
           {/* Avatar */}
-          {user.image ? (
+          {avatarUrl ? (
+            // Avatar servi par /api/media (ou l'URL OAuth d'origine) plutôt
+            // qu'inliné en base64 : le HTML reste léger et l'image est mise en
+            // cache par le navigateur et le CDN.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={user.image}
+              src={avatarUrl}
               alt={displayName}
+              width={144}
+              height={144}
+              fetchPriority="high"
               className="w-28 h-28 sm:w-36 sm:h-36 rounded-full mb-6 object-cover"
               style={{ boxShadow: `0 0 0 3px ${accentText}60, 0 8px 24px ${accentColor}30` }}
             />
@@ -294,10 +316,10 @@ export default async function ProfilePage({ params }: Props) {
                   <span className="text-sm" style={{ color: fg.muted }}>✅ lu{readCount !== 1 ? "s" : ""}</span>
                 </div>
               )}
-              {profile && profile.profileViews > 0 && (
+              {!!user.profileViews && user.profileViews > 0 && (
                 <div className="text-center">
-                  <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{profile.profileViews}</span>
-                  <span className="text-sm" style={{ color: fg.muted }}>👁️ vue{profile.profileViews !== 1 ? "s" : ""}</span>
+                  <span className="block text-3xl sm:text-4xl font-bold" style={{ color: fg.heading }}>{user.profileViews}</span>
+                  <span className="text-sm" style={{ color: fg.muted }}>👁️ vue{user.profileViews !== 1 ? "s" : ""}</span>
                 </div>
               )}
             </div>

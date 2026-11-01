@@ -16,17 +16,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  // Vérifie le username directement en BDD (plus fiable que le JWT)
-  const dbUser = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { username: true, isPremium: true },
-  })
+  // Les deux lectures partent ensemble : enchaînées, elles coûtaient deux
+  // allers-retours vers la base avant que le layout ne rende quoi que ce soit.
+  const [dbUser, unseenAchievements] = await Promise.all([
+    db.user.findUnique({
+      where: { id: session.user.id },
+      select: { username: true, isPremium: true },
+    }),
+    getUnseenAchievementCount(session.user.id),
+  ])
   if (!dbUser?.username) redirect("/setup")
-
-  // Valeur initiale pour le premier rendu (évite un flash à 0) — le
-  // rattrapage en temps réel des déblocages est géré côté client par
-  // AchievementsProvider (voir ce fichier pour le pourquoi)
-  const unseenAchievements = await getUnseenAchievementCount(session.user.id)
 
   const signOutForm = (
     <form action={async () => { "use server"; await signOut({ redirectTo: "/" }) }}>

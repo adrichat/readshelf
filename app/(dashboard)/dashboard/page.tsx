@@ -8,11 +8,18 @@ export default async function DashboardPage() {
   const session = await auth()
   const userId = session!.user!.id!
 
-  const [bookCount, readingCount, readCount] = await Promise.all([
-    db.userBook.count({ where: { userId } }),
-    db.userBook.count({ where: { userId, status: "READING" } }),
-    db.userBook.count({ where: { userId, status: "READ" } }),
-  ])
+  // Un seul agrégat au lieu de trois COUNT séparés : même résultat, un seul
+  // aller-retour vers la base.
+  const byStatus = await db.userBook.groupBy({
+    by: ["status"],
+    where: { userId },
+    _count: { _all: true },
+  })
+  const countFor = (status: string) =>
+    byStatus.find((g) => g.status === status)?._count._all ?? 0
+  const bookCount = byStatus.reduce((n, g) => n + g._count._all, 0)
+  const readingCount = countFor("READING")
+  const readCount = countFor("READ")
 
   return (
     <div className="p-4 sm:p-8 max-w-3xl">

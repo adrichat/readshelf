@@ -14,10 +14,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/mentions-legales`, changeFrequency: "yearly", priority: 0.3 },
   ]
 
-  const users = await db.user.findMany({
-    where: { username: { not: null } },
-    select: { username: true, updatedAt: true },
-  })
+  // Une base injoignable ne doit pas faire échouer tout le build : on sert
+  // alors le sitemap réduit aux routes statiques, et la revalidation horaire
+  // ci-dessus le complétera dès que la base répond.
+  const users = await db.user
+    .findMany({
+      where: { username: { not: null } },
+      select: { username: true, updatedAt: true },
+    })
+    .catch(() => [])
 
   const profileRoutes: MetadataRoute.Sitemap = users.map((user) => ({
     url: `${SITE_URL}/${user.username}`,

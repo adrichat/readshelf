@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import type { AchievementDef } from "@/lib/achievements"
 import { ACHIEVEMENTS_CHECK_EVENT } from "@/lib/achievements-events"
@@ -33,7 +32,6 @@ export function AchievementsProvider({
   initialUnseenCount: number
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
   const [unseenCount, setUnseenCount] = useState(initialUnseenCount)
   const [toasts, setToasts] = useState<Toast[]>([])
 
@@ -55,13 +53,20 @@ export function AchievementsProvider({
     }
   }, [])
 
+  // Au montage seulement, pas à chaque navigation. /api/achievements/check
+  // relit toute la bibliothèque de l'utilisateur (voir unlockNewAchievements) :
+  // le relancer à chaque changement de route ajoutait trois requêtes en base
+  // à *chaque* page du dashboard, pour un état qui ne peut pas avoir bougé
+  // entre deux clics. Les déblocages en cours de session restent rattrapés
+  // par ACHIEVEMENTS_CHECK_EVENT, déclenché juste après les actions qui
+  // peuvent débloquer un succès (effet suivant).
   useEffect(() => {
     // check() only touches state after its internal `await fetch(...)`
     // resolves (an async continuation, not a synchronous call) — the linter
     // can't see through that indirection from here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     check()
-  }, [pathname, check])
+  }, [check])
 
   useEffect(() => {
     window.addEventListener(ACHIEVEMENTS_CHECK_EVENT, check)

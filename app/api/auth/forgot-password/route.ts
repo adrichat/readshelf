@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
 
   if (ipAllowed && typeof email === "string" && email) {
     const emailAllowed = rateLimit(`forgot-password:email:${email.toLowerCase()}`, RESET_EMAIL_LIMIT, RESET_WINDOW_MS)
-    const user = emailAllowed ? await db.user.findUnique({ where: { email } }) : null
+    const user = emailAllowed
+      ? await db.user.findUnique({ where: { email }, select: { password: true } })
+      : null
 
     // Seuls les comptes email/mot de passe ont un mot de passe à réinitialiser
     // (un compte Google/Discord pur n'a pas de champ `password`)

@@ -32,9 +32,12 @@ export async function GET(req: NextRequest) {
     return response
   }
 
-  const user = await db.user.findUnique({ where: { id: session.user.id } })
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { username: true, name: true },
+  })
   if (user && !user.username) {
-    const taken = await db.user.findUnique({ where: { username } })
+    const taken = await db.user.findUnique({ where: { username }, select: { id: true } })
     if (!taken) {
       await db.user.update({
         where: { id: session.user.id },

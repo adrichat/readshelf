@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid username" }, { status: 400 })
   }
 
-  const existing = await db.user.findUnique({ where: { username } })
+  const existing = await db.user.findUnique({ where: { username }, select: { id: true } })
   if (existing) {
     return NextResponse.json({ error: "Taken" }, { status: 409 })
   }

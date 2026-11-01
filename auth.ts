@@ -61,7 +61,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new TooManyAttemptsError()
         }
 
-        const user = await db.user.findUnique({ where: { email } })
+        // `select` explicite : `User.image` peut peser plusieurs Mo (avatar en
+        // data URL) et n'a aucune utilité ici — le callback jwt supprime de
+        // toute façon `picture` du token.
+        const user = await db.user.findUnique({
+          where: { email },
+          select: { id: true, email: true, name: true, password: true, emailVerified: true },
+        })
         // Compare toujours contre un hash (celui du compte, ou le hash factice
         // si l'email n'existe pas / le compte est OAuth-only) pour que le
         // temps de réponse soit le même dans les deux cas.

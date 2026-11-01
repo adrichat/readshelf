@@ -32,6 +32,14 @@ export const authConfig = {
       if (isAuthPage && isLoggedIn) {
         return Response.redirect(new URL("/dashboard", nextUrl))
       }
+      // La redirection de l'accueil vers le dashboard se fait ici plutôt que
+      // dans app/page.tsx : y appeler auth() lisait les cookies et rendait la
+      // page d'accueil dynamique, donc impossible à servir depuis le CDN.
+      // Ce middleware tourne déjà sur chaque requête de page — le test est
+      // gratuit, et l'accueil redevient statique.
+      if (nextUrl.pathname === "/" && isLoggedIn) {
+        return Response.redirect(new URL("/dashboard", nextUrl))
+      }
       return true
     },
   },

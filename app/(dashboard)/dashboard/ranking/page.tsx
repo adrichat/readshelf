@@ -11,27 +11,52 @@ export default async function RankingPage() {
   const session = await auth()
   const userId = session!.user!.id!
 
-  const top = await db.profile.findMany({
-    where: {
-      profileViews: { gt: 0 },
-      // Sans username, pas de page publique à visiter
-      user: { username: { not: null } },
+  // La colonne `User.image` n'est jamais lue ici : un avatar uploadé est une
+  // data URL base64 de plusieurs Mo, et ce classement en affiche vingt — les
+  // remonter signifiait des dizaines de Mo tirés de la base puis inlinés dans
+  // le HTML. On ne récupère que de quoi construire l'URL de la route média
+  // (cacheable), ou l'URL distante telle quelle pour les avatars OAuth.
+  const rows = await db.$queryRaw<
+    {
+      profileViews: number
+      id: string
+      username: string
+      displayName: string | null
+      isPremium: boolean
+      remoteImageUrl: string | null
+      hasImage: boolean
+      userVersion: bigint
+    }[]
+  >`
+    select p."profileViews",
+           u.id,
+           u.username,
+           u."displayName",
+           u."isPremium",
+           case when u.image like 'data:%' then null else u.image end as "remoteImageUrl",
+           u.image is not null as "hasImage",
+           floor(extract(epoch from u."updatedAt"))::bigint as "userVersion"
+    from "Profile" p
+    join "User" u on u.id = p."userId"
+    where p."profileViews" > 0 and u.username is not null
+    order by p."profileViews" desc
+    limit 20
+  `
+
+  const top = rows.map((r) => ({
+    profileViews: r.profileViews,
+    user: {
+      id: r.id,
+      username: r.username,
+      displayName: r.displayName,
+      isPremium: r.isPremium,
+      avatarUrl:
+        r.remoteImageUrl ??
+        (r.hasImage
+          ? `/api/media/avatar/${encodeURIComponent(r.username)}?v=${r.userVersion}`
+          : null),
     },
-    orderBy: { profileViews: "desc" },
-    take: 20,
-    select: {
-      profileViews: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          image: true,
-          isPremium: true,
-        },
-      },
-    },
-  })
+  }))
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl">
@@ -76,11 +101,14 @@ export default async function RankingPage() {
                   {i + 1}
                 </span>
 
-                {p.user.image ? (
+                {p.user.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={p.user.image}
+                    src={p.user.avatarUrl}
                     alt=""
+                    width={40}
+                    height={40}
+                    loading="lazy"
                     className="w-10 h-10 rounded-full object-cover shrink-0"
                   />
                 ) : (
